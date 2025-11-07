@@ -1,5 +1,6 @@
 . import with: EXTREF sinit,spush,spop,sp
-stk     EXTDEF sinit,spush,spop,sp
+stk     START 0
+        EXTDEF sinit,spush,spop,sp
 
 . stack interface
 . --------------------------------------------

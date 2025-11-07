@@ -1,15 +1,268 @@
-. import with: EXTREF cl,cr,cu,cd,rch,pch,crsrnl
-io      EXTDEF cl,cr,cu,cd,rch,pch,crsrnl
+. import with: EXTREF ioinit,cl,cr,cu,cd,crsrnl,rch,pch,map_ch
+io      START 0
+        . uncomment for hidden API
+        . EXTDEF output,cursor,scrcol,scrrow
+        EXTDEF ioinit,cl,cr,cu,cd,crsrnl,rch,pch,map_ch
         EXTREF spush,spop,sp
 
-. #TODO
 . IO interface
 . -------------------------------------------------------
+
+. init IO - inits screen (clears screen and resets cursor)
+ioinit      STA scsaved_a
+            STA scsaved_b
+
+            LDA output   . reset cursor
+            STA cursor
+
+            LDA #ioinit_cb
+            +STL @sp     . call map_ch
+            +JSUB spush
+            JSUB map_ch
+            +JSUB spop
+            +LDL @sp
+
+            LDA output   . reset cursor
+            STA cursor
+            +STL @sp     . call draw_crsr
+            +JSUB spush
+            JSUB draw_crsr
+            +JSUB spop
+            +LDL @sp
+
+            LDA scsaved_b
+            LDA scsaved_a
+            RSUB
+
+. callback for map_ch. Writes #0x00 to cell
+ioinit_cb   LDCH #0x00
+            +STL @sp     . call pch
+            +JSUB spush
+            JSUB pch
+            +JSUB spop
+            +LDL @sp
+            RSUB
+
+. Movement
+. all return if can't move because of edge (SOR, EOR, SOC, EOC) in A. {0=EOL, 1=no EOL}
+. =======================================================
+. move cursor left
+cl          STB scsaved_b
+
+            LDA cursor  . if SOC (first column) => end
+            SUB output
+            LDB scrcol
+            +STL @sp
+            +JSUB spush
+            JSUB mod
+            +JSUB spop
+            +LDL @sp
+            COMP #0
+            JEQ clend
+
+            +STL @sp     . call remv_crsr
+            +JSUB spush
+            JSUB remv_crsr
+            +JSUB spop
+            +LDL @sp
+
+            LDA cursor  . move cursor left
+            SUB #1
+            STA cursor
+
+            +STL @sp     . call draw_crsr
+            +JSUB spush
+            JSUB draw_crsr
+            +JSUB spop
+            +LDL @sp
+
+            LDA #1
+clend       LDB scsaved_b
+            RSUB
+
+. move cursor right
+cr          STB scsaved_b
+
+            LDA cursor  . if EOC (last column) => end
+            SUB output
+            ADD #1
+            LDB scrcol
+            +STL @sp
+            +JSUB spush
+            JSUB mod
+            +JSUB spop
+            +LDL @sp
+            COMP #0
+            JEQ crend
+
+            +STL @sp     . call remv_crsr
+            +JSUB spush
+            JSUB remv_crsr
+            +JSUB spop
+            +LDL @sp
+
+            LDA cursor  . move cursor right
+            ADD #1
+            STA cursor
+
+            +STL @sp     . call draw_crsr
+            +JSUB spush
+            JSUB draw_crsr
+            +JSUB spop
+            +LDL @sp
+
+            LDA #1
+crend       LDB scsaved_b
+            RSUB
+
+. move cursor up
+cu          STB scsaved_b
+
+            LDA cursor  . if SOR (first row) => end
+            SUB output
+            DIV scrcol
+            COMP #0
+            JEQ cuend
+
+            +STL @sp     . call remv_crsr
+            +JSUB spush
+            JSUB remv_crsr
+            +JSUB spop
+            +LDL @sp
+
+            LDA cursor  . move cursor up
+            SUB scrcol
+            STA cursor
+
+            +STL @sp     . call draw_crsr
+            +JSUB spush
+            JSUB draw_crsr
+            +JSUB spop
+            +LDL @sp
+
+            LDA #1
+cuend       LDB scsaved_b
+            RSUB
+
+. move cursor down
+cd          STB scsaved_b
+
+            LDA cursor  . if EOR (last row) => end
+            SUB output
+            DIV scrcol
+            ADD #1
+            COMP scrrow
+            LDA #0
+            JEQ cdend
+
+            +STL @sp     . call remv_crsr
+            +JSUB spush
+            JSUB remv_crsr
+            +JSUB spop
+            +LDL @sp
+
+            LDA cursor  . move cursor down
+            ADD scrcol
+            STA cursor
+
+            +STL @sp     . call draw_crsr
+            +JSUB spush
+            JSUB draw_crsr
+            +JSUB spop
+            +LDL @sp
+
+            LDA #1
+cdend       LDB scsaved_b
+            RSUB
+
+. cursor to new line
+crsrnl      STB scsaved_b
+
+            LDA cursor  . if EOR (last row) => end
+            SUB output
+            DIV scrcol
+            ADD #1
+            COMP scrrow
+            LDA #0
+            JEQ cnlend
+    
+            +STL @sp    . call remv_crsr
+            +JSUB spush
+            JSUB remv_crsr
+            +JSUB spop
+            +LDL @sp
+    
+            LDA cursor  . move cursor to new line
+            SUB output
+            DIV scrcol
+            ADD #1
+            MUL scrcol
+            ADD output
+            STA cursor
+    
+            +STL @sp    . call draw_crsr
+            +JSUB spush
+            JSUB draw_crsr
+            +JSUB spop
+            +LDL @sp
+    
+            LDA #1
+cnlend      LDB scsaved_b
+            RSUB
+
+. remove cursor indicator
+. overwrites A
+. overwrites B
+remv_crsr   LDA cursor      . move cursor to indicator position
+            ADD scrcol
+            STA cursor
+
+            LDCH space_ch   . get space character
+            +STL @sp         . call pch
+            +JSUB spush
+            JSUB pch
+            +JSUB spop
+            +LDL @sp
+
+            LDA cursor      . move cursor back
+            SUB scrcol
+            STA cursor
+
+            RSUB
+
+. draw cursor indicator
+. overwrites A
+. overwrites B
+draw_crsr   LDA cursor      . move cursor to indicator position
+            ADD scrcol
+            STA cursor
+
+            LDCH cursor_ch  . get cursor indicator character
+            +STL @sp         . call pch
+            +JSUB spush
+            JSUB pch
+            +JSUB spop
+            +LDL @sp
+
+            LDA cursor      . move cursor back
+            SUB scrcol
+            STA cursor
+
+            RSUB
+
+. (A % B) = A - (A / B) * B
+mod         STA scsaved_a
+            DIVR B, A
+            MULR A, B
+            LDA scsaved_a
+            SUBR B, A
+            RSUB
+. =======================================================
 
 . Other
 . =======================================================
 . read character
-. result in A
+. result in A (last BYTE)
 rch     LDCH @input
         RSUB
 
@@ -17,19 +270,44 @@ rch     LDCH @input
 pch     STCH @cursor
         RSUB
 
-. cursor to new line
-crsrnl  STA scsaved_a
+. execute a callback for each cell on screen
+. params:
+.   callback in register A
+. while (!= 0)
+.    while (!= 0)
+.        callback();
+.        cr();
+.    crsrnl();
+map_ch      STA map_cb
 
-        LDA cursor
-        SUB output
-        DIV scrcol
-        ADD #1
-        MUL scrcol
-        ADD output
-        STA cursor
+            LDA #1
+map_l1      COMP #0
+            JEQ mapend
 
-        LDA scsaved_a
-        RSUB
+map_l2      COMP #0
+            JEQ map_l1end
+
+            +STL @sp         . call callback
+            +JSUB spush
+            JSUB @map_cb
+            +JSUB spop
+            +LDL @sp
+            +STL @sp         . call cr
+            +JSUB spush
+            JSUB cr
+            +JSUB spop
+            +LDL @sp
+            J map_l2
+
+map_l1end   +STL @sp         . call crsrnl
+            +JSUB spush
+            JSUB crsrnl
+            +JSUB spop
+            +LDL @sp
+            J map_l1
+
+mapend      RSUB
+map_cb      RESW 1
 . =======================================================
 
 
@@ -43,7 +321,8 @@ scrrow  WORD 25     . screen number of rows
 scsaved_a   RESW 1      . helper var to save OG value of register A
 scsaved_b   RESW 1      . helper var to save OG value of register B
 
-cursor_ch   BYTE 0xAF   . hex of the character that indicates where the cursor is
+cursor_ch   BYTE 0xAF   . hex of the cursor indicator character
+space_ch    BYTE 0x20   . hex of the space character
 . -------------------------------------------------------
 
         END io

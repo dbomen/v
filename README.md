@@ -60,6 +60,7 @@ where:
             - `Esc`
         - :
             - `:w XX` - saves to `XX.dev`
+            - `:e XX` - opens `XX.dev`
             - `:q`
             - `!`
 - `.sh` script to assemble and load the program into the simulator (with right settings)
