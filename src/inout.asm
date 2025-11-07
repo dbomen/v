@@ -311,7 +311,7 @@ map_cb      RESW 1
 . =======================================================
 
 
-input   WORD 0xc800 . addr of keyboard
+input   WORD 0xc000 . addr of keyboard
 
 output  WORD 0xb800 . addr of screen
 cursor  WORD 0xb800 . addr of cursor
