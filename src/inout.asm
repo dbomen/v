@@ -1,8 +1,11 @@
-. import with: EXTREF ioinit,cl,cr,cu,cd,crsrnl,rch,pch,map_ch
+. import with: EXTREF ioinit,cl,cr,cu,cd,crsrnl,rch,pch,map_ch,input
+. import ASCII ch with: EXTREF chnull,chesc,wnull,wesc
+. import hidden with: EXTREF output,cursor,scrcol,scrrow
 io      START 0
         . uncomment for hidden API
         . EXTDEF output,cursor,scrcol,scrrow
-        EXTDEF ioinit,cl,cr,cu,cd,crsrnl,rch,pch,map_ch
+        EXTDEF ioinit,cl,cr,cu,cd,crsrnl,rch,pch,map_ch,input
+        EXTDEF chnull,chesc,wnull,wesc
         EXTREF spush,spop,sp
 
 . IO interface
@@ -217,7 +220,7 @@ remv_crsr   LDA cursor      . move cursor to indicator position
             ADD scrcol
             STA cursor
 
-            LDCH space_ch   . get space character
+            LDCH chnull     . get null character
             +STL @sp         . call pch
             +JSUB spush
             JSUB pch
@@ -237,7 +240,7 @@ draw_crsr   LDA cursor      . move cursor to indicator position
             ADD scrcol
             STA cursor
 
-            LDCH cursor_ch  . get cursor indicator character
+            LDCH chcrsr  . get cursor indicator character
             +STL @sp         . call pch
             +JSUB spush
             JSUB pch
@@ -281,11 +284,11 @@ pch     STCH @cursor
 map_ch      STA map_cb
 
             LDA #1
-map_l1      COMP #0
-            JEQ mapend
+map_chl1    COMP #0
+            JEQ map_chend
 
-map_l2      COMP #0
-            JEQ map_l1end
+map_chl2    COMP #0
+            JEQ map_chl1end
 
             +STL @sp         . call callback
             +JSUB spush
@@ -297,16 +300,16 @@ map_l2      COMP #0
             JSUB cr
             +JSUB spop
             +LDL @sp
-            J map_l2
+            J map_chl2
 
-map_l1end   +STL @sp         . call crsrnl
+map_chl1end +STL @sp         . call crsrnl
             +JSUB spush
             JSUB crsrnl
             +JSUB spop
             +LDL @sp
-            J map_l1
+            J map_chl1
 
-mapend      RSUB
+map_chend    RSUB
 map_cb      RESW 1
 . =======================================================
 
@@ -321,8 +324,13 @@ scrrow  WORD 25     . screen number of rows
 scsaved_a   RESW 1      . helper var to save OG value of register A
 scsaved_b   RESW 1      . helper var to save OG value of register B
 
-cursor_ch   BYTE 0xAF   . hex of the cursor indicator character
-space_ch    BYTE 0x20   . hex of the space character
+chnull      BYTE 0x00   . hex of the null character
+chesc       BYTE 0x1B   . hex of the escape character
+chcrsr      BYTE 0xAF   . hex of the cursor indicator character
+
+wnull      WORD 0x00   . hex of the null character (3 BYTES)
+wesc       WORD 0x1B   . hex of the escape character (3 BYTES)
+wcrsr      WORD 0xAF   . hex of the cursor indicator character (3 BYTES)
 . -------------------------------------------------------
 
         END io
