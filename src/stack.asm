@@ -12,6 +12,11 @@ stk     START 0
 .       JSUB spop
 .       LDA @sp
 
+. Always store L at the start of subroutines!
+. On paper you only have to if your subroutine calls other subroutines and you want to use the stack
+.   for other registers (not only L). But as good practice you should always just store L at the start
+.   of subroutines (lost 2h debugging y L gets messed up)
+
 . init stack - sp at the start of the stack
 sinit       STA ssaved_a
             LDA #stack

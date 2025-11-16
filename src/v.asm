@@ -1,7 +1,7 @@
 . import with: EXTREF c_i
 v       START 0
         EXTDEF c_i
-        EXTREF cl,cr,cu,cd,crsrnl,rch,pch,map_ch,input
+        EXTREF cl,cr,cu,cd,crsrnl,rch,pch,map_ch,input,shiftr,shiftl
         EXTREF wnull,wesc
         EXTREF spush,spop,sp
 
@@ -11,12 +11,13 @@ v       START 0
 . NORMAL mode
 . =======================================================
 . i (go to insert mode)
-c_i     +STL @sp     . call insert_loop
+c_i     +STL @sp
         +JSUB spush
-        JSUB insert
+
+        JSUB insert . go to the insert loop
+
         +JSUB spop
         +LDL @sp
-
         RSUB
 . =======================================================
 
@@ -25,16 +26,20 @@ c_i     +STL @sp     . call insert_loop
 . #TODO - ENTER special char + shifting chars from right if needed
 . writes characters from keyboard to screen
 . ESC to break the loop
-insert          STA vsaved_a
+insert          +STL @sp
+                +JSUB spush
+                +STA @sp        . store old A
+                +JSUB spush
 
-                +LDA wnull       . reset input
+                +LDA wnull      . reset input
                 +STCH @input
 
 insert_loop     CLEAR A         . get and compare character
                 +LDCH @input
                 +COMP wnull
                 JEQ insert_loop
-                STA crnt_ch
+                +STA @sp        . store current character
+                +JSUB spush
 
                 . special characters check
                 . ------------------------
@@ -45,33 +50,26 @@ insert_loop     CLEAR A         . get and compare character
 insert_escape   J insert_end
                 . ------------------------
 
-insert_main     . #TODO: shift chars from right!
+insert_main     .!TODO +JSUB shiftr
 
-                LDA crnt_ch     . write character
-                +STL @sp
-                +JSUB spush
+                +JSUB spop      . get and write character
+                +LDA @sp
                 +JSUB pch
-                +JSUB spop
-                +LDL @sp
 
-                +STL @sp        . try to move cursor right #TODO if on edge it overwrites char everytime
-                +JSUB spush
-                +JSUB cr
-                +JSUB spop
-                +LDL @sp
+                +JSUB cr        . try to move cursor right #TODO if on edge it overwrites char everytime
 
                 +LDA wnull       . reset input
                 +STCH @input
                 J insert_loop
                 
-insert_end      LDA vsaved_a
+insert_end      +JSUB spop
+                +LDA @sp
+                +JSUB spop
+                +LDL @sp
                 RSUB
 
 crnt_ch         RESW 1
 . =======================================================
-
-
-vsaved_a    RESW 1      . helper var to save OG value of register A
 . -------------------------------------------------------
 
         END v

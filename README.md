@@ -44,7 +44,7 @@ where:
 
 ### FULL PRIO
 - Bottom bar -> shows mode + commands (bottom 2 rows are reserved for the bottom bar)
-- Commands (single-line)
+- Commands (single-char)
     - implement with 255 array and have O(1) mapping
     - Movement
         - `h`, `b`, `0`
@@ -89,7 +89,7 @@ where:
         - The idea is to allow the user to add their own commands. They call the exposed subroutine with needed parameters (in registers) and at the end clear needed registers for loop.asm
 
 ### LESS PRIO
-- Commands (multi-line)
+- Commands (multi-char)
     - implement with trie
     - Movement
     - Text manipulation

@@ -1,7 +1,7 @@
 . tests EOL checks for all movement subroutines of inout.asm
 . S = # of passed tests
 . T = # of failed tests
-. USES hidden API inou.asm variables for testing!
+. USES hidden API inout.asm variables for testing!
 test1       START 0
             EXTREF ioinit,cl,cr,cu,cd,crsrnl,rch,pch,map_ch
             . hidden API
