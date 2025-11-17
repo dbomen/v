@@ -1,5 +1,5 @@
-. import with: EXTREF ioinit,cl,cr,cu,cd,crsrnl,rch,pch,map_ch,input
-. import ASCII ch with: EXTREF chnull,chesc,wnull,wesc
+. import with: EXTREF ioinit,cl,cr,cu,cd,crsrnl,rch,pch,map_ch,input,shiftr,shiftl
+. import ASCII ch with: EXTREF chnull,chesc,chcrsr,chspace,wnull,wesc,wcrsr,wspace
 . import hidden with: EXTREF output,cursor,scrcol,scrrow
 io      START 0
         . uncomment for hidden API
@@ -311,12 +311,121 @@ map_chend   +JSUB spop
             RSUB
 map_cb      RESW 1
 
-. shift characters right in line. Includes cursor character
-shiftr      LDA #0 . TODO
+. shift characters right in line from cursor (including the cursor character)
+. does NOT move the cursor
+. writes chspace=0x20 to empty slot
+. 1234567 -> 123 4567
+.    ^          ^
+.               0x20
+shiftr      +STL @sp
+            +JSUB spush
+            +STA @sp
+            +JSUB spush
+
+            CLEAR A         . store cursor position
+            LDA cursor
+            STA shift_og_crsr
+
+shiftr_l1   JSUB cr         . find EOL (move right until wnull or cr gives EOL)
+            COMP #0
+            JEQ shiftr_l2
+            CLEAR A
+            LDCH @cursor
+            COMP #0x00
+            JEQ shiftr_l2
+            J shiftr_l1
+
+shiftr_l2   CLEAR A         . do shift right (cleft, read, cright, print, cleft)
+            LDA cursor      . if current cursor == OG cursor => end
+            COMP shift_og_crsr
+            JEQ shiftr_end
+
+            JSUB cl         . cleft
+            COMP #0
+            JEQ shiftr_end
+
+            CLEAR A         . read (store char on stack)
+            LDCH @cursor
+            STCH shift_ch
+
+            JSUB cr         . cright
+
+            CLEAR A         . print
+            LDCH shift_ch
+            JSUB pch
+
+            JSUB cl         . cleft
+            COMP #0
+            JEQ shiftr_end
+
+            J shiftr_l2
+
+shiftr_end  JSUB remv_crsr
+            LDA shift_og_crsr
+            STA cursor
+            JSUB draw_crsr
+            CLEAR A
+            LDCH chspace
+            JSUB pch
+
+            +JSUB spop
+            +LDA @sp
+            +JSUB spop
+            +LDL @sp
             RSUB
-. shift characters left in line. Includes cursor character
-shiftl      LDA #0 . TODO
+
+. shift characters left in line from cursor (including the cursor character)
+. does NOT move the cursor
+. 1234567 -> 124567
+.    ^          ^
+shiftl      +STL @sp
+            +JSUB spush
+            +STA @sp
+            +JSUB spush
+
+            CLEAR A         . store cursor position
+            LDA cursor
+            STA shift_og_crsr
+
+shiftl_l1   CLEAR A         . do shift left (read, cleft, print, cright, cright). Stop on EOL or 2nd 0x00
+            LDCH @cursor    . read
+            STCH shift_ch
+
+            JSUB cl         . cleft (no shift if at start: 123 -> 123)
+            COMP #0         .                              ^      ^
+            JEQ shiftl_end
+
+            CLEAR A         . print
+            LDCH shift_ch
+            JSUB pch
+
+            JSUB cr         . cright (if second 0x00 end)
+            COMP #0
+            JEQ shiftl_end
+            CLEAR A
+            LDCH @cursor
+            COMP #0x00
+            JEQ shiftl_end
+
+            JSUB cr         . cright
+            COMP #0
+            JEQ shiftl_end
+
+            J shiftl_l1
+
+shiftl_end  JSUB remv_crsr
+            LDA shift_og_crsr
+            STA cursor
+            JSUB draw_crsr
+
+            +JSUB spop
+            +LDA @sp
+            +JSUB spop
+            +LDL @sp
             RSUB
+
+shift_ch        RESB 1
+shift_og_crsr   RESW 1
 . =======================================================
 
 
@@ -327,13 +436,15 @@ cursor  WORD 0xb800 . addr of cursor
 scrcol  WORD 80     . screen number of columns
 scrrow  WORD 25     . screen number of rows
 
-chnull     BYTE 0x00   . hex of the null character
-chesc      BYTE 0x1B   . hex of the escape character
-chcrsr     BYTE 0xAF   . hex of the cursor indicator character
+chnull      BYTE 0x00   . hex of the null character
+chesc       BYTE 0x1B   . hex of the escape character
+chcrsr      BYTE 0xAF   . hex of the cursor indicator character
+chspace     BYTE 0x20   . hex of the space character
 
-wnull      WORD 0x00   . hex of the null character (3 BYTES)
-wesc       WORD 0x1B   . hex of the escape character (3 BYTES)
-wcrsr      WORD 0xAF   . hex of the cursor indicator character (3 BYTES)
+wnull       WORD 0x00   . hex of the null character (3 BYTES)
+wesc        WORD 0x1B   . hex of the escape character (3 BYTES)
+wcrsr       WORD 0xAF   . hex of the cursor indicator character (3 BYTES)
+wspace      WORD 0x20   . hex of the space character (3 BYTES)
 . -------------------------------------------------------
 
         END io

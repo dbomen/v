@@ -50,15 +50,15 @@ insert_loop     CLEAR A         . get and compare character
 insert_escape   J insert_end
                 . ------------------------
 
-insert_main     .!TODO +JSUB shiftr
+insert_main     +JSUB shiftr
 
                 +JSUB spop      . get and write character
                 +LDA @sp
                 +JSUB pch
 
-                +JSUB cr        . try to move cursor right #TODO if on edge it overwrites char everytime
+                +JSUB cr        . try to move cursor right #FIXME if on edge it overwrites char everytime
 
-                +LDA wnull       . reset input
+                +LDA wnull      . reset input
                 +STCH @input
                 J insert_loop
                 
