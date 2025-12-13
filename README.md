@@ -47,10 +47,10 @@ where:
 - Commands (single-char)
     - implement with 255 array and have O(1) mapping
     - Movement
-        - `h`, `b`, `0`
-        - `l`, `w`, `$`
-        - `k`, `g` (will be `gg` when multi-line commands are added)
-        - `j`, `G`
+        - ~~`h`~~, `b`, `0`
+        - ~~`l`~~, `w`, `$`
+        - ~~`k`~~, `g` (will be `gg` when multi-line commands are added)
+        - ~~`j`~~, `G`
     - Text manipulation
         - `y`, `d`, `p` -> 1 register for all (`y` and `d` yank / delete a line - will be changed when multi-line commands are added)
     - Other

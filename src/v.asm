@@ -1,6 +1,6 @@
 . import with: EXTREF c_i
 v       START 0
-        EXTDEF c_i
+        EXTDEF c_i,c_h,c_l,c_k,c_j
         EXTREF cl,cr,cu,cd,crsrnl,rch,pch,map_ch,input,shiftr,shiftl
         EXTREF wnull,wesc,went
         EXTREF spush,spop,sp
@@ -19,11 +19,88 @@ c_i     +STL @sp
         +JSUB spop
         +LDL @sp
         RSUB
+
+. h
+. go left (no constraints)
+c_h     +STL @sp
+        +JSUB spush
+        +STA @sp        . store old A
+        +JSUB spush
+
+        +JSUB cl
+
+        +JSUB spop
+        +LDA @sp
+        +JSUB spop
+        +LDL @sp
+        RSUB
+
+. l
+. go right (constraint: if next char == 0 => cannot go right)
+c_l     +STL @sp
+        +JSUB spush
+        +STA @sp        . store old A
+        +JSUB spush
+
+        +JSUB cr
+
+        CLEAR A
+        +JSUB rch
+        +COMP wnull
+        JEQ c_lback
+
+        J c_lend
+
+c_lback +JSUB cl
+
+c_lend  +JSUB spop
+        +LDA @sp
+        +JSUB spop
+        +LDL @sp
+        RSUB
+
+. k
+. go up (no constraints)
+c_k     +STL @sp
+        +JSUB spush
+        +STA @sp        . store old A
+        +JSUB spush
+
+        +JSUB cu
+
+        +JSUB spop
+        +LDA @sp
+        +JSUB spop
+        +LDL @sp
+        RSUB
+
+. j
+. go down (constraint: if bottom char == 0 => cannot go down)
+c_j     +STL @sp
+        +JSUB spush
+        +STA @sp        . store old A
+        +JSUB spush
+
+        +JSUB cd
+
+        CLEAR A
+        +JSUB rch
+        +COMP wnull
+        JEQ c_jback
+
+        J c_jend
+
+c_jback +JSUB cu
+
+c_jend  +JSUB spop
+        +LDA @sp
+        +JSUB spop
+        +LDL @sp
+        RSUB
 . =======================================================
 
 . INSERT mode
 . =======================================================
-. #TODO - ENTER special char + shifting chars from right if needed
 . writes characters from keyboard to screen
 . ESC to break the loop
 insert          +STL @sp
@@ -51,9 +128,11 @@ insert_loop     CLEAR A         . get and compare character
 
                 J insert_main
 
-insert_escape   J insert_end
+insert_escape   +JSUB spop      . pop character off the stack to keep stack consistent
+                J insert_end
 
-insert_enter    +JSUB crsrnl
+insert_enter    +JSUB spop      . pop character off the stack to keep stack consistent
+                +JSUB crsrnl
                 J insert_reset
                 . ------------------------
 
@@ -69,13 +148,18 @@ insert_reset    +LDA wnull      . reset input
                 +STCH @input
                 J insert_loop
                 
-insert_end      +JSUB spop
-                +LDA @sp
-                +JSUB spop
-                +LDL @sp
-                RSUB
+insert_end      CLEAR A         . if cursor at null character => move left
+                +JSUB rch
+                +COMP wnull
+                JEQ insert_end_mv
+                J insert_end_stack
+insert_end_mv   +JSUB cl
 
-crnt_ch         RESW 1
+insert_end_stack    +JSUB spop
+                    +LDA @sp
+                    +JSUB spop
+                    +LDL @sp
+                    RSUB
 . =======================================================
 . -------------------------------------------------------
 
