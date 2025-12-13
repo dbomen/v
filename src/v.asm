@@ -2,7 +2,7 @@
 v       START 0
         EXTDEF c_i
         EXTREF cl,cr,cu,cd,crsrnl,rch,pch,map_ch,input,shiftr,shiftl
-        EXTREF wnull,wesc
+        EXTREF wnull,wesc,went
         EXTREF spush,spop,sp
 
 . V interface
@@ -45,9 +45,16 @@ insert_loop     CLEAR A         . get and compare character
                 . ------------------------
                 +COMP wesc
                 JEQ insert_escape
+
+                +COMP went
+                JEQ insert_enter
+
                 J insert_main
 
 insert_escape   J insert_end
+
+insert_enter    +JSUB crsrnl
+                J insert_reset
                 . ------------------------
 
 insert_main     +JSUB shiftr
@@ -58,7 +65,7 @@ insert_main     +JSUB shiftr
 
                 +JSUB cr        . try to move cursor right #FIXME if on edge it overwrites char everytime
 
-                +LDA wnull      . reset input
+insert_reset    +LDA wnull      . reset input
                 +STCH @input
                 J insert_loop
                 

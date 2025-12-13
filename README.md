@@ -35,7 +35,7 @@ where:
 - `init.asm` adds commands to the command Map
 - `vconf.asm` possibly user adds commands to the command Map (can be any name)
 - `loop.asm` waits in loop for user commands
-- `v.asm` command implementations
+- `v.asm` command implementations, vim specifics
 - `inout.asm` screen and keyboard interface
 - `map.asm` map interface
 - `stack.asm` stack interface

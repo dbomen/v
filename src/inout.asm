@@ -5,7 +5,7 @@ io      START 0
         . uncomment for hidden API
         . EXTDEF output,cursor,scrcol,scrrow
         EXTDEF ioinit,cl,cr,cu,cd,crsrnl,rch,pch,map_ch,input,shiftr,shiftl
-        EXTDEF chnull,chesc,wnull,wesc
+        EXTDEF chnull,chesc,chent,wnull,wesc,went
         EXTREF spush,spop,sp
 
 . IO interface
@@ -438,11 +438,13 @@ scrrow  WORD 25     . screen number of rows
 
 chnull      BYTE 0x00   . hex of the null character
 chesc       BYTE 0x1B   . hex of the escape character
+chent       BYTE 0x0A   . hex of the enter character
 chcrsr      BYTE 0xAF   . hex of the cursor indicator character
 chspace     BYTE 0x20   . hex of the space character
 
 wnull       WORD 0x00   . hex of the null character (3 BYTES)
 wesc        WORD 0x1B   . hex of the escape character (3 BYTES)
+went        WORD 0x0A   . hex of the enter character (3 BYTES)
 wcrsr       WORD 0xAF   . hex of the cursor indicator character (3 BYTES)
 wspace      WORD 0x20   . hex of the space character (3 BYTES)
 . -------------------------------------------------------
