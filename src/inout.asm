@@ -258,12 +258,12 @@ mod         +STL @sp
 
 . Other
 . =======================================================
-. read character
+. read character at cursor
 . result in A (last BYTE)
 rch     +STL @sp
         +JSUB spush
 
-        LDCH @input
+        LDCH @cursor
 
         +JSUB spop
         +LDL @sp
