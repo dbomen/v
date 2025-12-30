@@ -207,7 +207,7 @@ remv_crsr   +STL @sp
             ADD scrcol
             STA cursor
 
-            LDCH chnull     . get null character
+            LDCH chprev     . get previous character
             JSUB pch
 
             LDA cursor      . move cursor back
@@ -227,6 +227,9 @@ draw_crsr   +STL @sp
             LDA cursor      . move cursor to indicator position
             ADD scrcol
             STA cursor
+
+            JSUB rch        . load current character and save it
+            STCH chprev
 
             LDCH chcrsr  . get cursor indicator character
             JSUB pch
@@ -435,6 +438,8 @@ output  WORD 0xb800 . addr of screen
 cursor  WORD 0xb800 . addr of cursor
 scrcol  WORD 80     . screen number of columns
 scrrow  WORD 25     . screen number of rows
+
+chprev      RESB 1      . runtime variable that holds the previous character, the cursor indicator replaced
 
 chnull      BYTE 0x00   . hex of the null character
 chesc       BYTE 0x1B   . hex of the escape character
