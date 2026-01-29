@@ -1,9 +1,9 @@
 . tests basic movement 2
 . inject some data and cursor should:
-. - go top
-. - go bottom
-. - go top
-. - go bottom
+. - go first character
+. - go last character
+. - go first character
+. - go last character
 test3       START 0
             EXTREF c_i,c_g,c_G
             EXTREF ioinit

@@ -1,7 +1,7 @@
 . import with: EXTREF c_i
 v       START 0
         EXTDEF c_i,c_h,c_l,c_k,c_j,c_g,c_G
-        EXTREF cl,cr,cu,cd,crsrnl,ctop,cbtm,cfirst,clast,rch,pch,map_ch,input,shiftr,shiftl
+        EXTREF cl,cr,cu,cd,crsrnl,ctop,cbtm,cfirst,clast,cprev,rch,pch,map_ch,input,shiftr,shiftl
         EXTREF wnull,wesc,went
         EXTREF spush,spop,sp
 
@@ -92,15 +92,17 @@ c_j     +STL @sp
 
         +JSUB cd
 
-        CLEAR A
+        . if line null (if first character in line == 0) => go back and stop
+        +JSUB cfirst
         +JSUB rch
         +COMP wnull
         JEQ c_jback
 
+        +JSUB cprev
         J c_jend
 
-c_jback +JSUB cu
-
+c_jback +JSUB cprev
+        +JSUB cu
 c_jend  +JSUB spop
         +LDA @sp
         +JSUB spop
@@ -110,16 +112,13 @@ c_jend  +JSUB spop
 
 . .......................................................
 . g
-. go top
+. go to first character
 c_g     +STL @sp
         +JSUB spush
         +STA @sp        . store old A
         +JSUB spush
 
-c_gloop +JSUB cu        . go up until EOF
-        COMP #0
-        JEQ c_gend
-        J c_gloop
+        +JSUB ctop
 
 c_gend  +JSUB spop
         +LDA @sp
@@ -130,7 +129,7 @@ c_gend  +JSUB spop
 
 . .......................................................
 . G
-. go bottom
+. go to last character
 c_G     +STL @sp
         +JSUB spush
         +STA @sp        . store old A
@@ -140,7 +139,8 @@ c_Gloop +JSUB cd        . go down until EOF
         COMP #0
         JEQ c_Gend      . if at edge => stop
 
-        CLEAR A         . if null => go back and stop
+        . if line null (if first character in line == 0) => go back and stop
+        +JSUB cfirst
         +JSUB rch
         +COMP wnull
         JEQ c_Gback
@@ -148,7 +148,15 @@ c_Gloop +JSUB cd        . go down until EOF
         J c_Gloop
 
 c_Gback +JSUB cu
-c_Gend  +JSUB spop
+c_Gend  +JSUB cr        . go right until EOR (end of row - fist null character)
+        +JSUB rch
+        +COMP wnull
+        JEQ c_Geend
+        J c_Gend
+
+c_Geend +JSUB cl
+
+        +JSUB spop
         +LDA @sp
         +JSUB spop
         +LDL @sp
