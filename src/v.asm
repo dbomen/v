@@ -1,6 +1,6 @@
 . import with: EXTREF c_i
 v       START 0
-        EXTDEF c_i,c_h,c_l,c_k,c_j
+        EXTDEF c_i,c_h,c_l,c_k,c_j,c_g,c_G
         EXTREF cl,cr,cu,cd,crsrnl,rch,pch,map_ch,input,shiftr,shiftl
         EXTREF wnull,wesc,went
         EXTREF spush,spop,sp
@@ -10,6 +10,7 @@ v       START 0
 
 . NORMAL mode
 . =======================================================
+. .......................................................
 . i (go to insert mode)
 c_i     +STL @sp
         +JSUB spush
@@ -19,7 +20,9 @@ c_i     +STL @sp
         +JSUB spop
         +LDL @sp
         RSUB
+. .......................................................
 
+. .......................................................
 . h
 . go left (no constraints)
 c_h     +STL @sp
@@ -34,7 +37,9 @@ c_h     +STL @sp
         +JSUB spop
         +LDL @sp
         RSUB
+. .......................................................
 
+. .......................................................
 . l
 . go right (constraint: if next char == 0 => cannot go right)
 c_l     +STL @sp
@@ -58,7 +63,9 @@ c_lend  +JSUB spop
         +JSUB spop
         +LDL @sp
         RSUB
+. .......................................................
 
+. .......................................................
 . k
 . go up (no constraints)
 c_k     +STL @sp
@@ -73,7 +80,9 @@ c_k     +STL @sp
         +JSUB spop
         +LDL @sp
         RSUB
+. .......................................................
 
+. .......................................................
 . j
 . go down (constraint: if bottom char == 0 => cannot go down)
 c_j     +STL @sp
@@ -97,6 +106,54 @@ c_jend  +JSUB spop
         +JSUB spop
         +LDL @sp
         RSUB
+. .......................................................
+
+. .......................................................
+. g
+. go top
+c_g     +STL @sp
+        +JSUB spush
+        +STA @sp        . store old A
+        +JSUB spush
+
+c_gloop +JSUB cu        . go up until EOF
+        COMP #0
+        JEQ c_gend
+        J c_gloop
+
+c_gend  +JSUB spop
+        +LDA @sp
+        +JSUB spop
+        +LDL @sp
+        RSUB
+. .......................................................
+
+. .......................................................
+. G
+. go bottom
+c_G     +STL @sp
+        +JSUB spush
+        +STA @sp        . store old A
+        +JSUB spush
+
+c_Gloop +JSUB cd        . go down until EOF
+        COMP #0
+        JEQ c_Gend      . if at edge => stop
+
+        CLEAR A         . if null => go back and stop
+        +JSUB rch
+        +COMP wnull
+        JEQ c_Gback
+
+        J c_Gloop
+
+c_Gback +JSUB cu
+c_Gend  +JSUB spop
+        +LDA @sp
+        +JSUB spop
+        +LDL @sp
+        RSUB
+. .......................................................
 . =======================================================
 
 . INSERT mode
