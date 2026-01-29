@@ -1,7 +1,7 @@
 . import with: EXTREF c_i
 v       START 0
         EXTDEF c_i,c_h,c_l,c_k,c_j,c_g,c_G
-        EXTREF cl,cr,cu,cd,crsrnl,rch,pch,map_ch,input,shiftr,shiftl
+        EXTREF cl,cr,cu,cd,crsrnl,ctop,cbtm,cfirst,clast,rch,pch,map_ch,input,shiftr,shiftl
         EXTREF wnull,wesc,went
         EXTREF spush,spop,sp
 

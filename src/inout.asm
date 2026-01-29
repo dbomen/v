@@ -1,10 +1,10 @@
-. import with: EXTREF ioinit,cl,cr,cu,cd,crsrnl,rch,pch,map_ch,input,shiftr,shiftl
+. import with: EXTREF ioinit,cl,cr,cu,cd,crsrnl,ctop,cbtm,cfirst,clast,rch,pch,map_ch,input,shiftr,shiftl
 . import ASCII ch with: EXTREF chnull,chesc,chcrsr,chspace,wnull,wesc,wcrsr,wspace
 . import hidden with: EXTREF output,cursor,scrcol,scrrow
 io      START 0
         . uncomment for hidden API
         . EXTDEF output,cursor,scrcol,scrrow
-        EXTDEF ioinit,cl,cr,cu,cd,crsrnl,rch,pch,map_ch,input,shiftr,shiftl
+        EXTDEF ioinit,cl,cr,cu,cd,crsrnl,ctop,cbtm,cfirst,clast,rch,pch,map_ch,input,shiftr,shiftl
         EXTDEF chnull,chesc,chent,wnull,wesc,went
         EXTREF spush,spop,sp
 
@@ -192,6 +192,101 @@ crsrnl      +STL @sp
     
             LDA #1
 cnlend      +JSUB spop
+            +LDB @sp
+            +JSUB spop
+            +LDL @sp
+            RSUB
+
+. cursor to top left
+ctop        +STL @sp
+            +JSUB spush
+            +STB @sp
+            +JSUB spush
+
+            JSUB remv_crsr
+
+            LDA output
+            STA cursor
+
+            JSUB draw_crsr
+
+ctop_end    +JSUB spop
+            +LDB @sp
+            +JSUB spop
+            +LDL @sp
+            RSUB
+
+. cursor to bottom left
+cbtm        +STL @sp
+            +JSUB spush
+            +STB @sp
+            +JSUB spush
+
+            JSUB remv_crsr
+
+            . scrrow * scrcol - 1 + output
+            LDA scrrow
+            MUL scrcol
+            SUB #1
+            ADD output
+            STA cursor
+
+            JSUB draw_crsr
+
+cbtm_end    +JSUB spop
+            +LDB @sp
+            +JSUB spop
+            +LDL @sp
+            RSUB
+
+. cursor to first in line
+cfirst      +STL @sp
+            +JSUB spush
+            +STB @sp
+            +JSUB spush
+
+            JSUB remv_crsr
+
+            . res1 = (cursor - output) / scrcol     <- get rows
+            . res = res1 * scrcol + output          <- get first column in row
+            LDA cursor
+            SUB output
+            DIV scrcol
+            MUL scrcol
+            ADD output
+            STA cursor
+
+            JSUB draw_crsr
+
+cfirst_end  +JSUB spop
+            +LDB @sp
+            +JSUB spop
+            +LDL @sp
+            RSUB
+
+. cursor to first in line
+clast       +STL @sp
+            +JSUB spush
+            +STB @sp
+            +JSUB spush
+
+            JSUB remv_crsr
+
+            . res1 = (cursor - output) / scrcol     <- get rows
+            . res2 = (res1 + 1)                     <- get next row
+            . res3 = res2 * scrcol - 1 + output     <- get last character in origin row
+            LDA cursor
+            SUB output
+            DIV scrcol
+            ADD #1
+            MUL scrcol
+            SUB #1
+            ADD output
+            STA cursor
+
+            JSUB draw_crsr
+
+clast_end   +JSUB spop
             +LDB @sp
             +JSUB spop
             +LDL @sp
