@@ -9,7 +9,8 @@ Text editor built in SIC/XE assembly that runs in the simulator https://github.c
 # Usage
 
 1. Install simulator from https://github.com/jurem/SicTools.
-2. TODO: Simulator setup... (steps to open screen, freq settings, ...)
+2. Put sictools.jar in ```/scripts```
+3. TODO: Simulator setup... (steps to open screen, freq settings, ...)
 
 # Features
 
@@ -49,7 +50,7 @@ where:
     - Movement
         - ~~`h`~~, `b`, `0`
         - ~~`l`~~, `w`, `$`
-        - ~~`k`~~, `g` (will be `gg` when multi-line commands are added)
+        - ~~`k`~~, `g`
         - ~~`j`~~, `G`
     - Text manipulation
         - `y`, `d`, `p` -> 1 register for all (`y` and `d` yank / delete a line - will be changed when multi-line commands are added)
