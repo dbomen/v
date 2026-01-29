@@ -1,10 +1,10 @@
-. import with: EXTREF ioinit,cl,cr,cu,cd,crsrnl,ctop,cbtm,cfirst,clast,rch,pch,map_ch,input,shiftr,shiftl
+. import with: EXTREF ioinit,cl,cr,cu,cd,crsrnl,ctop,cbtm,cfirst,clast,cprev,rch,pch,map_ch,input,shiftr,shiftl
 . import ASCII ch with: EXTREF chnull,chesc,chcrsr,chspace,wnull,wesc,wcrsr,wspace
 . import hidden with: EXTREF output,cursor,scrcol,scrrow
 io      START 0
         . uncomment for hidden API
         . EXTDEF output,cursor,scrcol,scrrow
-        EXTDEF ioinit,cl,cr,cu,cd,crsrnl,ctop,cbtm,cfirst,clast,rch,pch,map_ch,input,shiftr,shiftl
+        EXTDEF ioinit,cl,cr,cu,cd,crsrnl,ctop,cbtm,cfirst,clast,cprev,rch,pch,map_ch,input,shiftr,shiftl
         EXTDEF chnull,chesc,chent,wnull,wesc,went
         EXTREF spush,spop,sp
 
@@ -48,7 +48,7 @@ ioinit_cb   +STL @sp
             +LDL @sp
             RSUB
 
-. Movement
+. Basic movement
 . all return if can't move because of edge (SOR, EOR, SOC, EOC) in A. {0=EOL, 1=no EOL}
 . =======================================================
 . move cursor left
@@ -196,9 +196,14 @@ cnlend      +JSUB spop
             +JSUB spop
             +LDL @sp
             RSUB
+. =======================================================
 
+. Other movement
+. =======================================================
 . cursor to top left
 ctop        +STL @sp
+            +JSUB spush
+            +STA @sp
             +JSUB spush
             +STB @sp
             +JSUB spush
@@ -213,11 +218,15 @@ ctop        +STL @sp
 ctop_end    +JSUB spop
             +LDB @sp
             +JSUB spop
+            +LDA @sp
+            +JSUB spop
             +LDL @sp
             RSUB
 
 . cursor to bottom left
 cbtm        +STL @sp
+            +JSUB spush
+            +STA @sp
             +JSUB spush
             +STB @sp
             +JSUB spush
@@ -236,11 +245,15 @@ cbtm        +STL @sp
 cbtm_end    +JSUB spop
             +LDB @sp
             +JSUB spop
+            +LDA @sp
+            +JSUB spop
             +LDL @sp
             RSUB
 
 . cursor to first in line
 cfirst      +STL @sp
+            +JSUB spush
+            +STA @sp
             +JSUB spush
             +STB @sp
             +JSUB spush
@@ -261,11 +274,15 @@ cfirst      +STL @sp
 cfirst_end  +JSUB spop
             +LDB @sp
             +JSUB spop
+            +LDA @sp
+            +JSUB spop
             +LDL @sp
             RSUB
 
 . cursor to first in line
 clast       +STL @sp
+            +JSUB spush
+            +STA @sp
             +JSUB spush
             +STB @sp
             +JSUB spush
@@ -289,6 +306,32 @@ clast       +STL @sp
 clast_end   +JSUB spop
             +LDB @sp
             +JSUB spop
+            +LDA @sp
+            +JSUB spop
+            +LDL @sp
+            RSUB
+
+cprev       +STL @sp
+            +JSUB spush
+            +STA @sp
+            +JSUB spush
+
+            LDA crsrprev        . load the cursor position and put it on the stack (because remv_crsr messes with A)
+            +STA @sp
+            +JSUB spush
+
+            JSUB remv_crsr
+
+            +JSUB spop          . get the cursor position and move cursor there
+            +LDA @sp
+            STA cursor
+
+            JSUB draw_crsr
+
+
+cprev_end   +JSUB spop
+            +LDA @sp
+            +JSUB spop
             +LDL @sp
             RSUB
 
@@ -297,6 +340,9 @@ clast_end   +JSUB spop
 . overwrites B
 remv_crsr   +STL @sp
             +JSUB spush
+
+            LDA cursor      . save current cursor position
+            STA crsrprev
 
             LDA cursor      . move cursor to indicator position
             ADD scrcol
@@ -535,6 +581,7 @@ scrcol  WORD 80     . screen number of columns
 scrrow  WORD 25     . screen number of rows
 
 chprev      RESB 1      . runtime variable that holds the previous character, the cursor indicator replaced
+crsrprev    RESW 1      . runtime variable that holds the previous cursor position
 
 chnull      BYTE 0x00   . hex of the null character
 chesc       BYTE 0x1B   . hex of the escape character
