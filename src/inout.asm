@@ -1,11 +1,11 @@
 . import with: EXTREF ioinit,cl,cr,cu,cd,crsrnl,ctop,cbtm,cfirst,clast,cprev,rch,pch,map_ch,input,shiftr,shiftl
-. import ASCII ch with: EXTREF chnull,chesc,chcrsr,chspace,wnull,wesc,wcrsr,wspace
+. import ASCII ch with: EXTREF chnull,chesc,chent,chcrsr,chspac,wnull,wesc,went,wcrsr,wspace
 . import hidden with: EXTREF output,cursor,scrcol,scrrow
 io      START 0
         . uncomment for hidden API
         . EXTDEF output,cursor,scrcol,scrrow
         EXTDEF ioinit,cl,cr,cu,cd,crsrnl,ctop,cbtm,cfirst,clast,cprev,rch,pch,map_ch,input,shiftr,shiftl
-        EXTDEF chnull,chesc,chent,wnull,wesc,went
+        EXTDEF chnull,chesc,chent,chcrsr,chspac,wnull,wesc,went,wcrsr,wspace
         EXTREF spush,spop,sp
 
 . IO interface
@@ -457,7 +457,7 @@ map_cb      RESW 1
 
 . shift characters right in line from cursor (including the cursor character)
 . does NOT move the cursor
-. writes chspace=0x20 to empty slot
+. writes chspac=0x20 to empty slot
 . 1234567 -> 123 4567
 .    ^          ^
 .               0x20
@@ -509,7 +509,7 @@ shiftr_end  JSUB remv_crsr
             STA cursor
             JSUB draw_crsr
             CLEAR A
-            LDCH chspace
+            LDCH chspac
             JSUB pch
 
             +JSUB spop
@@ -587,7 +587,7 @@ chnull      BYTE 0x00   . hex of the null character
 chesc       BYTE 0x1B   . hex of the escape character
 chent       BYTE 0x0A   . hex of the enter character
 chcrsr      BYTE 0xAF   . hex of the cursor indicator character
-chspace     BYTE 0x20   . hex of the space character
+chspac      BYTE 0x20   . hex of the space character
 
 wnull       WORD 0x00   . hex of the null character (3 BYTES)
 wesc        WORD 0x1B   . hex of the escape character (3 BYTES)

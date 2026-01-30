@@ -1,8 +1,8 @@
-. import with: EXTREF c_i
+. import with: EXTREF c_i,c_h,c_l,c_k,c_j,c_g,c_G,c_w,c_b
 v       START 0
-        EXTDEF c_i,c_h,c_l,c_k,c_j,c_g,c_G
+        EXTDEF c_i,c_h,c_l,c_k,c_j,c_g,c_G,c_w,c_b
         EXTREF cl,cr,cu,cd,crsrnl,ctop,cbtm,cfirst,clast,cprev,rch,pch,map_ch,input,shiftr,shiftl
-        EXTREF wnull,wesc,went
+        EXTREF wnull,wesc,went,wcrsr,wspace
         EXTREF spush,spop,sp
 
 . V interface
@@ -157,6 +157,80 @@ c_Gend  +JSUB cr        . go right until EOR (end of row - fist null character)
 c_Geend +JSUB cl
 
         +JSUB spop
+        +LDA @sp
+        +JSUB spop
+        +LDL @sp
+        RSUB
+. .......................................................
+
+. .......................................................
+. w
+. go to next word in line
+c_w     +STL @sp
+        +JSUB spush
+        +STA @sp        . store old A
+        +JSUB spush
+
+c_wloop +JSUB cr
+
+        COMP #0         . if EOF (EOR) then end
+        JEQ c_wend
+
+        +JSUB rch
+        +COMP wnull      . if EOR (because next is null) then go back and end
+        JEQ c_wback
+
+        +COMP wspace     . if space try going right and end
+        JEQ c_wspac
+
+        J c_wloop       . else try again
+
+c_wspac +JSUB cr
+        COMP #0         . if EOF (EOR) then end
+        JEQ c_wend
+        +JSUB rch
+        +COMP wnull      . if EOR (because next is null) then go back and end
+        JEQ c_wback
+        +COMP wspace     . if another space try again
+        JEQ c_wspac
+        J c_wend        . else end
+
+c_wback +JSUB cl
+c_wend  +JSUB spop
+        +LDA @sp
+        +JSUB spop
+        +LDL @sp
+        RSUB
+. .......................................................
+
+. .......................................................
+. b
+. go to previous word in line
+c_b     +STL @sp
+        +JSUB spush
+        +STA @sp        . store old A
+        +JSUB spush
+
+c_bloop +JSUB cl
+
+        COMP #0         . if EOF (SOR) then end
+        JEQ c_bend
+
+        +JSUB rch
+        +COMP wspace     . if space try going left and end
+        JEQ c_bspac
+
+        J c_bloop       . else try again
+
+c_bspac +JSUB cl
+        COMP #0         . if EOF (SOR) then end
+        JEQ c_bend
+        +JSUB rch
+        +COMP wspace     . if another space try again
+        JEQ c_bspac
+        J c_bend        . else end
+
+c_bend  +JSUB spop
         +LDA @sp
         +JSUB spop
         +LDL @sp
