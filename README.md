@@ -88,6 +88,7 @@ where:
                 END vconf
         ```
         - The idea is to allow the user to add their own commands. They call the exposed subroutine with needed parameters (in registers) and at the end clear needed registers for loop.asm
+- startup screen on empty file
 
 ### LESS PRIO
 - Commands (multi-char)

@@ -1,10 +1,10 @@
-. import with: EXTREF ioinit,cl,cr,cu,cd,crsrnl,ctop,cbtm,cfirst,clast,cprev,rch,pch,map_ch,input,shiftr,shiftl
+. import with: EXTREF ioinit,cl,cr,cu,cd,crsrnl,ctop,cbtm,cfirst,clast,cprev,rch,pch,map_ch,map_ln,input,shiftr,shiftl
 . import ASCII ch with: EXTREF chnull,chesc,chent,chcrsr,chspac,wnull,wesc,went,wcrsr,wspace
 . import hidden with: EXTREF output,cursor,scrcol,scrrow
 io      START 0
         . uncomment for hidden API
         . EXTDEF output,cursor,scrcol,scrrow
-        EXTDEF ioinit,cl,cr,cu,cd,crsrnl,ctop,cbtm,cfirst,clast,cprev,rch,pch,map_ch,input,shiftr,shiftl
+        EXTDEF ioinit,cl,cr,cu,cd,crsrnl,ctop,cbtm,cfirst,clast,cprev,rch,pch,map_ch,map_ln,input,shiftr,shiftl
         EXTDEF chnull,chesc,chent,chcrsr,chspac,wnull,wesc,went,wcrsr,wspace
         EXTREF spush,spop,sp
 
@@ -453,6 +453,36 @@ map_chl1end JSUB crsrnl
 map_chend   +JSUB spop
             +LDL @sp
             RSUB
+
+. execute a callback for each cell in line
+. params:
+.   callback in register A
+. i = first
+. while (i <= last)
+.     callback();
+.     cr()
+map_ln      +STL @sp
+            +JSUB spush
+            +STA @sp
+            +JSUB spush
+
+            STA map_cb
+
+            JSUB cfirst     . i = first
+map_lnloop  JSUB @map_cb    . do callback() on i
+
+            JSUB cr
+            COMP #0         . if EOF (EOR) => end
+            JEQ map_lnend
+
+            J map_lnloop    . else i++
+
+map_lnend   +JSUB spop
+            +LDA @sp
+            +JSUB spop
+            +LDL @sp
+            RSUB
+
 map_cb      RESW 1
 
 . shift characters right in line from cursor (including the cursor character)
