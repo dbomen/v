@@ -53,7 +53,7 @@ where:
         - ~~`k`~~, ~~`g`~~
         - ~~`j`~~, ~~`G`~~
     - Text manipulation
-        - `y`, `d`, `p` -> 1 register for all (`y` and `d` yank / delete a line - will be changed when multi-line commands are added)
+        - ~~`y`, `d`, `p` -> 1 register for all (`y` and `d` yank / delete a line - will be changed when multi-line commands are added)~~
     - Other
         - Mode switch
             - `i`,`I`

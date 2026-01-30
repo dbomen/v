@@ -1,8 +1,8 @@
 . import with: EXTREF c_i,c_h,c_l,c_k,c_j,c_g,c_G,c_w,c_b,c_0,c_dlr
 v       START 0
-        EXTDEF c_i,c_h,c_l,c_k,c_j,c_g,c_G,c_w,c_b,c_0,c_dlr
-        EXTREF cl,cr,cu,cd,crsrnl,ctop,cbtm,cfirst,clast,cprev,rch,pch,map_ch,input,shiftr,shiftl
-        EXTREF wnull,wesc,went,wcrsr,wspace
+        EXTDEF c_i,c_h,c_l,c_k,c_j,c_g,c_G,c_w,c_b,c_0,c_dlr,c_y,c_d,c_p
+        EXTREF cl,cr,cu,cd,crsrnl,ctop,cbtm,cfirst,clast,cprev,rch,pch,map_ch,map_ln,input,shiftr,shiftl
+        EXTREF chnull,chesc,chent,chcrsr,chspac,wnull,wesc,went,wcrsr,wspace
         EXTREF spush,spop,sp
 
 . V interface
@@ -291,6 +291,137 @@ c_dlrend    +JSUB spop
             +LDL @sp
             RSUB
 . .......................................................
+
+. .......................................................
+. y
+. yank line
+c_y     +STL @sp
+        +JSUB spush
+        +STA @sp
+        +JSUB spush
+        +STX @sp
+        +JSUB spush
+
+        LDA #c_ycb
+        +JSUB map_ln
+
+        +JSUB cfirst    . go to first character
+
+c_yend  +JSUB spop
+        +LDX @sp
+        +JSUB spop
+        +LDA @sp
+        +JSUB spop
+        +LDL @sp
+        RSUB
+
+. yank callback for map_ln. Copies each character into r_manip
+. uses **global X**
+c_ycb   +STL @sp
+        +JSUB spush
+        +STA @sp
+        +JSUB spush
+
+        CLEAR A
+        +JSUB rch
+        STCH r_manip, X     . store character into r_manip[X]
+        TIX #0              . X++
+
+        +JSUB spop
+        +LDA @sp
+        +JSUB spop
+        +LDL @sp
+        RSUB
+. .......................................................
+
+. .......................................................
+. d
+. delete line
+c_d     +STL @sp
+        +JSUB spush
+        +STA @sp
+        +JSUB spush
+        +STX @sp
+        +JSUB spush
+
+        LDA #c_dcb
+        +JSUB map_ln    . copy characters into r_manip and null out the line
+
+        +JSUB cfirst    . go to first character and add space into it to unnull the line
+        +LDCH chspac
+        +JSUB pch
+
+c_dend  +JSUB spop
+        +LDX @sp
+        +JSUB spop
+        +LDA @sp
+        +JSUB spop
+        +LDL @sp
+        RSUB
+
+. delete callback for map_ln. Copies each character into r_manip and deletes it
+. uses **global X**
+c_dcb   +STL @sp
+        +JSUB spush
+        +STA @sp
+        +JSUB spush
+
+        CLEAR A
+        +JSUB rch
+        STCH r_manip, X  . store character into r_manip[X]
+
+        +LDCH chnull     . delete the character
+        +JSUB pch
+
+        TIX #0          . X++
+
+        +JSUB spop
+        +LDA @sp
+        +JSUB spop
+        +LDL @sp
+        RSUB
+. .......................................................
+
+. .......................................................
+. p
+. paste line
+c_p     +STL @sp
+        +JSUB spush
+        +STA @sp
+        +JSUB spush
+        +STX @sp
+        +JSUB spush
+
+        LDA #c_pcb
+        +JSUB map_ln
+
+        +JSUB cfirst    . go to first character
+
+c_pend  +JSUB spop
+        +LDX @sp
+        +JSUB spop
+        +LDA @sp
+        +JSUB spop
+        +LDL @sp
+        RSUB
+
+. paste callback for map_ln. Copies each character from r_manip to line
+. uses **global X**
+c_pcb   +STL @sp
+        +JSUB spush
+        +STA @sp
+        +JSUB spush
+
+        LDCH r_manip, X     . load character from r_manip[X]
+        +JSUB pch           . print it
+        TIX #0              . X++
+
+        +JSUB spop
+        +LDA @sp
+        +JSUB spop
+        +LDL @sp
+        RSUB
+. .......................................................
 . =======================================================
 
 . INSERT mode
@@ -354,6 +485,11 @@ insert_end_stack    +JSUB spop
                     +JSUB spop
                     +LDL @sp
                     RSUB
+. =======================================================
+
+. Registers
+. =======================================================
+r_manip   RESB 300  . manipulation register (y, d, p)
 . =======================================================
 . -------------------------------------------------------
 
