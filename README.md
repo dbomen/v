@@ -58,6 +58,7 @@ where:
         - Mode switch
             - ~~`i`~~,~~`I`~~
             - ~~`a`~~,~~`A`~~
+            - ~~`o`~~
             - ~~`Esc`~~
         - :
             - `:w XX` - saves to `XX.dev`
@@ -101,7 +102,6 @@ where:
         - `r`, `R`
         - `s`, `S`
         - `c<Y>`
-        - `o`,`O`
     - `<number><command>`
     - Visual mode
 - Unlimited rows

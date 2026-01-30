@@ -1,5 +1,5 @@
 init    START 0
-        EXTREF c_i,c_a,c_I,c_A,c_h,c_l,c_k,c_j,c_g,c_G,c_w,c_b,c_0,c_dlr,c_y,c_d,c_p
+        EXTREF c_i,c_a,c_o,c_I,c_A,c_h,c_l,c_k,c_j,c_g,c_G,c_w,c_b,c_0,c_dlr,c_y,c_d,c_p
         EXTREF ioinit
         EXTREF mput
         EXTREF sinit
@@ -15,6 +15,10 @@ init    START 0
 
         LDA #0x41
         +LDB #c_a
+        +JSUB mput
+
+        LDA #0x4f
+        +LDB #c_o
         +JSUB mput
 
 . LDA #0x49

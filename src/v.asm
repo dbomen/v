@@ -1,7 +1,7 @@
-. import with: EXTREF c_i,c_a,c_I,c_A,c_h,c_l,c_k,c_j,c_g,c_G,c_w,c_b,c_0,c_dlr,c_y,c_d,c_p
+. import with: EXTREF c_i,c_a,c_o,c_I,c_A,c_h,c_l,c_k,c_j,c_g,c_G,c_w,c_b,c_0,c_dlr,c_y,c_d,c_p
 v       START 0
-        EXTDEF c_i,c_a,c_I,c_A,c_h,c_l,c_k,c_j,c_g,c_G,c_w,c_b,c_0,c_dlr,c_y,c_d,c_p
-        EXTREF cl,cr,cu,cd,crsrnl,ctop,cbtm,cfirst,clast,cprev,rch,pch,map_ch,map_ln,input,shiftr,shiftl
+        EXTDEF c_i,c_a,c_o,c_I,c_A,c_h,c_l,c_k,c_j,c_g,c_G,c_w,c_b,c_0,c_dlr,c_y,c_d,c_p
+        EXTREF cl,cr,cu,cd,crsrnl,ctop,cbtm,cfirst,clast,cprev,rch,pch,map_ch,map_ln,input,shiftr,shiftl,shiftd
         EXTREF chnull,chesc,chent,chcrsr,chspac,chback,wnull,wesc,went,wcrsr,wspace,wback
         EXTREF spush,spop,sp
 
@@ -30,6 +30,21 @@ c_a     +STL @sp
         +JSUB spush
 
         +JSUB cr
+        JSUB insert . go to the insert loop
+
+        +JSUB spop
+        +LDL @sp
+        RSUB
+. .......................................................
+
+. .......................................................
+. o
+. shift down, go to new line and enter insert mode
+c_o     +STL @sp
+        +JSUB spush
+
+        +JSUB shiftd
+        +JSUB crsrnl
         JSUB insert . go to the insert loop
 
         +JSUB spop
