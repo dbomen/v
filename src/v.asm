@@ -75,7 +75,15 @@ c_k     +STL @sp
 
         +JSUB cu
 
-        +JSUB spop
+        CLEAR A         . if null => get to first character from the right
+        +JSUB rch
+        +COMP wnull
+        JEQ c_kfind
+
+        J c_kend        . else => end
+
+c_kfind +JSUB c_dlr
+c_kend  +JSUB spop
         +LDA @sp
         +JSUB spop
         +LDL @sp
