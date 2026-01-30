@@ -1,4 +1,4 @@
-. test shiftr and shiftl
+. test shiftr, shiftl, shiftd
 . expected output (ignore the cursor indicators, since these are made by using the hidden APIs)
 . HELLO W ORLD
 . HE LLO W ORL D
@@ -10,10 +10,16 @@
 . HELLO WORL
 . HELLO WORLD
 .
+. HELLO WORLD
+.
+. HELLO WORLD
+. HELLO WORLD
+.
+. HELLO WORLD
 
 . USES hidden API inout.asm variables for testing!
 test2       START 0
-            EXTREF ioinit,cl,cr,cu,cd,crsrnl,rch,pch,map_ch,input,shiftr,shiftl
+            EXTREF ioinit,cl,cr,cu,cd,crsrnl,ctop,cbtm,cfirst,clast,cprev,rch,pch,map_ch,map_ln,input,shiftr,shiftl,shiftd
             . hidden API
             EXTREF output,cursor,scrcol,scrrow
             EXTREF sinit,spush,spop,sp
@@ -129,6 +135,29 @@ test2       START 0
             . --------------------------
             +JSUB shiftl
             +JSUB crsrnl
+            . --------------------------
+
+            . 11., 12., 13., 14. row
+            . --------------------------
+            +JSUB test_print
+            +JSUB crsrnl
+            +JSUB test_print
+            +JSUB crsrnl
+            +JSUB test_print
+            +JSUB crsrnl
+            +JSUB test_print
+
+            +JSUB cu
+            +JSUB cu
+            +JSUB cu
+
+            +JSUB shiftd
+
+            +JSUB cd
+            +JSUB cd
+            +JSUB cd
+
+            +JSUB shiftd
             . --------------------------
 
 halt        J halt

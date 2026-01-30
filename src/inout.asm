@@ -1,10 +1,10 @@
-. import with: EXTREF ioinit,cl,cr,cu,cd,crsrnl,ctop,cbtm,cfirst,clast,cprev,rch,pch,map_ch,map_ln,input,shiftr,shiftl
+. import with: EXTREF ioinit,cl,cr,cu,cd,crsrnl,ctop,cbtm,cfirst,clast,cprev,rch,pch,map_ch,map_ln,input,shiftr,shiftl,shiftd
 . import ASCII ch with: EXTREF chnull,chesc,chent,chcrsr,chspac,chback,wnull,wesc,went,wcrsr,wspace,wback
 . import hidden with: EXTREF output,cursor,scrcol,scrrow
 io      START 0
         . uncomment for hidden API
         . EXTDEF output,cursor,scrcol,scrrow
-        EXTDEF ioinit,cl,cr,cu,cd,crsrnl,ctop,cbtm,cfirst,clast,cprev,rch,pch,map_ch,map_ln,input,shiftr,shiftl
+        EXTDEF ioinit,cl,cr,cu,cd,crsrnl,ctop,cbtm,cfirst,clast,cprev,rch,pch,map_ch,map_ln,input,shiftr,shiftl,shiftd
         EXTDEF chnull,chesc,chent,chcrsr,chspac,chback,wnull,wesc,went,wcrsr,wspace,wback
         EXTREF spush,spop,sp
 
@@ -597,6 +597,78 @@ shiftl_end  JSUB remv_crsr
             +JSUB spop
             +LDL @sp
             RSUB
+
+. -------------------------------------------------------------------------------------------------
+. shift lines down
+. does NOT move the cursor
+shiftd      +STL @sp
+            +JSUB spush
+            +STA @sp
+            +JSUB spush
+            +STX @sp
+            +JSUB spush
+
+            CLEAR X
+
+            CLEAR A         . store cursor position
+            LDA cursor
+            STA shift_og_crsr
+
+shiftd_l1   +JSUB crsrnl    . find null line
+            COMP #0         . if EOF => overwrite last line
+            JEQ shiftd_l2
+
+            +JSUB rch       . if null line => go to loop2
+            COMP wnull
+            JEQ shiftd_l2
+
+            TIX #0
+            J shiftd_l1
+
+shiftd_l2   LDA #0          . shift all lines down from starting line to null line
+            COMPR A, X
+            JEQ shiftd_end
+
+            JSUB cu         . go to above line
+            LDA #shiftd_cb  . do the callback for each cell
+            JSUB map_ln
+
+            LDA #1
+            SUBR A, X
+            J shiftd_l2
+
+shiftd_end  JSUB remv_crsr
+            LDA shift_og_crsr
+            STA cursor
+            JSUB draw_crsr
+
+            +JSUB spop
+            +LDX @sp
+            +JSUB spop
+            +LDA @sp
+            +JSUB spop
+            +LDL @sp
+            RSUB
+
+. callback for map_ln. Copies each character into the bottom line and deletes it
+shiftd_cb   +STL @sp
+            +JSUB spush
+            +STA @sp
+            +JSUB spush
+
+            CLEAR A
+            JSUB rch
+            STCH chprev       . store character below cursor indicator
+
+            LDCH chnull       . delete the character
+            JSUB pch
+
+            +JSUB spop
+            +LDA @sp
+            +JSUB spop
+            +LDL @sp
+            RSUB
+. -------------------------------------------------------------------------------------------------
 
 shift_ch        RESB 1
 shift_og_crsr   RESW 1
