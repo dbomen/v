@@ -616,13 +616,13 @@ crsrprev    RESW 1      . runtime variable that holds the previous cursor positi
 chnull      BYTE 0x00   . hex of the null character
 chesc       BYTE 0x1B   . hex of the escape character
 chent       BYTE 0x0A   . hex of the enter character
-chcrsr      BYTE 0xAF   . hex of the cursor indicator character
+chcrsr      BYTE 0x5E   . hex of the cursor indicator character
 chspac      BYTE 0x20   . hex of the space character
 
 wnull       WORD 0x00   . hex of the null character (3 BYTES)
 wesc        WORD 0x1B   . hex of the escape character (3 BYTES)
 went        WORD 0x0A   . hex of the enter character (3 BYTES)
-wcrsr       WORD 0xAF   . hex of the cursor indicator character (3 BYTES)
+wcrsr       WORD 0x5E   . hex of the cursor indicator character (3 BYTES)
 wspace      WORD 0x20   . hex of the space character (3 BYTES)
 . -------------------------------------------------------
 

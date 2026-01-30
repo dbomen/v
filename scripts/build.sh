@@ -10,11 +10,7 @@ printhelp() {
     exit 1
 }
 
-if [[ "$1" == "files" ]]; then
-    shift # exclude "files"
-
-    if [[ -z "$1" ]]; then printhelp; fi
-
+build_files() {
     # copy .asm files
     echo "[build] Copying files..."
     cp "$@" .
@@ -41,10 +37,40 @@ if [[ "$1" == "files" ]]; then
         rm -f "$o"
     done
     rm -f *.asm *.lst *.log
+}
+
+if [[ "$1" == "files" ]]; then
+    if [ ! -f sictools.jar ]; then
+        echo "sictools.jar not found! Make sure to copy it here from SicTools (https://github.com/jurem/SicTools)"
+        exit 2
+    fi
+
+    shift # exclude "files"
+
+    if [[ -z "$1" ]]; then printhelp; fi
+    build_files "$@"
 
 elif [[ "$1" == "project" ]]; then
-    # TODO: build the project
-    echo "TODO: build the project"
+    if [ ! -f sictools.jar ]; then
+        echo "sictools.jar not found! Make sure to copy it here from SicTools (https://github.com/jurem/SicTools)"
+        exit 2
+    fi
+    if [ ! -d ../src ]; then
+        echo "src directory not found! Make sure to run $0 in PROJECT_ROOT/scripts"
+        exit 3
+    fi
+
+    asm_files=()
+    asm_files+=( "../src/init.asm" )
+    [[ -f ../src/vconf.asm ]] && asm_files+=( "../src/vconf.asm" )
+    asm_files+=( "../src/loop.asm" )
+    asm_files+=( "../src/v.asm" )
+    asm_files+=( "../src/inout.asm" )
+    asm_files+=( "../src/map.asm" )
+    asm_files+=( "../src/stack.asm" )
+
+    build_files "${asm_files[@]}"
+
 else
     printhelp
 fi

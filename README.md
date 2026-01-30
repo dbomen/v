@@ -63,7 +63,7 @@ where:
             - `:w XX` - saves to `XX.dev`
             - `:e XX` - opens `XX.dev`
             - `:q`
-- `.sh` script to assemble and load the program into the simulator (with right settings)
+- ~~`.sh` script to assemble and load the program into the simulator (with right settings)~~
 - Config file
     - The program can expose a subroutine that can be used by the users config file that can be assembled with the main program (`.sh` flag).
     - Example of config file `vconf.asm` would maybe look like:
