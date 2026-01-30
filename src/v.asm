@@ -94,6 +94,7 @@ c_j     +STL @sp
 
         . if line null (if first character in line == 0) => go back and stop
         +JSUB cfirst
+        CLEAR A
         +JSUB rch
         +COMP wnull
         JEQ c_jback
@@ -141,6 +142,7 @@ c_Gloop +JSUB cd        . go down until EOF
 
         . if line null (if first character in line == 0) => go back and stop
         +JSUB cfirst
+        CLEAR A
         +JSUB rch
         +COMP wnull
         JEQ c_Gback
@@ -149,6 +151,7 @@ c_Gloop +JSUB cd        . go down until EOF
 
 c_Gback +JSUB cu
 c_Gend  +JSUB cr        . go right until EOR (end of row - fist null character)
+        CLEAR A
         +JSUB rch
         +COMP wnull
         JEQ c_Geend
@@ -176,6 +179,7 @@ c_wloop +JSUB cr
         COMP #0         . if EOF (EOR) then end
         JEQ c_wend
 
+        CLEAR A
         +JSUB rch
         +COMP wnull      . if EOR (because next is null) then go back and end
         JEQ c_wback
@@ -188,6 +192,7 @@ c_wloop +JSUB cr
 c_wspac +JSUB cr
         COMP #0         . if EOF (EOR) then end
         JEQ c_wend
+        CLEAR A
         +JSUB rch
         +COMP wnull      . if EOR (because next is null) then go back and end
         JEQ c_wback
@@ -216,6 +221,7 @@ c_bloop +JSUB cl
         COMP #0         . if EOF (SOR) then end
         JEQ c_bend
 
+        CLEAR A
         +JSUB rch
         +COMP wspace     . if space try going left and end
         JEQ c_bspac
@@ -225,6 +231,7 @@ c_bloop +JSUB cl
 c_bspac +JSUB cl
         COMP #0         . if EOF (SOR) then end
         JEQ c_bend
+        CLEAR A
         +JSUB rch
         +COMP wspace     . if another space try again
         JEQ c_bspac
@@ -263,6 +270,7 @@ c_dlr       +STL @sp
             +JSUB spush
 
             +JSUB clast     . go till last in line (even if null) and go back until u find a non-null character
+            CLEAR A
             +JSUB rch       . if null => find non-null
             +COMP wnull
             JEQ c_dlrloop
@@ -271,6 +279,7 @@ c_dlr       +STL @sp
 c_dlrloop   +JSUB cl
             COMP #0         . if EOF (SOR) => end
             JEQ c_dlrend
+            CLEAR A
             +JSUB rch       . if still null => try again
             +COMP wnull
             JEQ c_dlrloop

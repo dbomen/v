@@ -48,8 +48,8 @@ where:
 - Commands (single-char)
     - implement with 255 array and have O(1) mapping
     - Movement
-        - ~~`h`~~, ~~`b`~~, `0`
-        - ~~`l`~~, ~~`w`~~, `$`
+        - ~~`h`~~, ~~`b`~~, ~~`0`~~
+        - ~~`l`~~, ~~`w`~~, ~~`$`~~
         - ~~`k`~~, ~~`g`~~
         - ~~`j`~~, ~~`G`~~
     - Text manipulation
