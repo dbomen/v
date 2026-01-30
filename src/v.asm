@@ -1,6 +1,6 @@
-. import with: EXTREF c_i,c_h,c_l,c_k,c_j,c_g,c_G,c_w,c_b
+. import with: EXTREF c_i,c_h,c_l,c_k,c_j,c_g,c_G,c_w,c_b,c_0,c_dlr
 v       START 0
-        EXTDEF c_i,c_h,c_l,c_k,c_j,c_g,c_G,c_w,c_b
+        EXTDEF c_i,c_h,c_l,c_k,c_j,c_g,c_G,c_w,c_b,c_0,c_dlr
         EXTREF cl,cr,cu,cd,crsrnl,ctop,cbtm,cfirst,clast,cprev,rch,pch,map_ch,input,shiftr,shiftl
         EXTREF wnull,wesc,went,wcrsr,wspace
         EXTREF spush,spop,sp
@@ -235,6 +235,52 @@ c_bend  +JSUB spop
         +JSUB spop
         +LDL @sp
         RSUB
+. .......................................................
+
+. .......................................................
+. 0
+. go to first character in line
+c_0     +STL @sp
+        +JSUB spush
+        +STA @sp        . store old A
+        +JSUB spush
+
+        +JSUB cfirst
+
+c_0end  +JSUB spop
+        +LDA @sp
+        +JSUB spop
+        +LDL @sp
+        RSUB
+. .......................................................
+
+. .......................................................
+. $
+. go to last character in line
+c_dlr       +STL @sp
+            +JSUB spush
+            +STA @sp        . store old A
+            +JSUB spush
+
+            +JSUB clast     . go till last in line (even if null) and go back until u find a non-null character
+            +JSUB rch       . if null => find non-null
+            +COMP wnull
+            JEQ c_dlrloop
+            J c_dlrend        . else if non-null end
+
+c_dlrloop   +JSUB cl
+            COMP #0         . if EOF (SOR) => end
+            JEQ c_dlrend
+            +JSUB rch       . if still null => try again
+            +COMP wnull
+            JEQ c_dlrloop
+            J c_dlrend      . else end
+
+c_dlrend    +JSUB spop
+            +LDA @sp
+            +JSUB spop
+            +LDL @sp
+            RSUB
 . .......................................................
 . =======================================================
 
