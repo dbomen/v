@@ -1,11 +1,11 @@
 . import with: EXTREF ioinit,cl,cr,cu,cd,crsrnl,ctop,cbtm,cfirst,clast,cprev,rch,pch,map_ch,map_ln,input,shiftr,shiftl
-. import ASCII ch with: EXTREF chnull,chesc,chent,chcrsr,chspac,wnull,wesc,went,wcrsr,wspace
+. import ASCII ch with: EXTREF chnull,chesc,chent,chcrsr,chspac,chback,wnull,wesc,went,wcrsr,wspace,wback
 . import hidden with: EXTREF output,cursor,scrcol,scrrow
 io      START 0
         . uncomment for hidden API
         . EXTDEF output,cursor,scrcol,scrrow
         EXTDEF ioinit,cl,cr,cu,cd,crsrnl,ctop,cbtm,cfirst,clast,cprev,rch,pch,map_ch,map_ln,input,shiftr,shiftl
-        EXTDEF chnull,chesc,chent,chcrsr,chspac,wnull,wesc,went,wcrsr,wspace
+        EXTDEF chnull,chesc,chent,chcrsr,chspac,chback,wnull,wesc,went,wcrsr,wspace,wback
         EXTREF spush,spop,sp
 
 . IO interface
@@ -618,12 +618,14 @@ chesc       BYTE 0x1B   . hex of the escape character
 chent       BYTE 0x0A   . hex of the enter character
 chcrsr      BYTE 0x5E   . hex of the cursor indicator character
 chspac      BYTE 0x20   . hex of the space character
+chback      BYTE 0x08   . hex of the backspace character
 
 wnull       WORD 0x00   . hex of the null character (3 BYTES)
 wesc        WORD 0x1B   . hex of the escape character (3 BYTES)
 went        WORD 0x0A   . hex of the enter character (3 BYTES)
 wcrsr       WORD 0x5E   . hex of the cursor indicator character (3 BYTES)
 wspace      WORD 0x20   . hex of the space character (3 BYTES)
+wback       WORD 0x08   . hex of the backspace character (3 BYTES)
 . -------------------------------------------------------
 
         END io
