@@ -56,15 +56,13 @@ where:
         - ~~`y`, `d`, `p` -> 1 register for all (`y` and `d` yank / delete a line - will be changed when multi-line commands are added)~~
     - Other
         - Mode switch
-            - `i`,`I`
-            - `a`,`A`
-            - `o`,`O`
-            - `Esc`
+            - ~~`i`~~,~~`I`~~
+            - ~~`a`~~,~~`A`~~
+            - ~~`Esc`~~
         - :
             - `:w XX` - saves to `XX.dev`
             - `:e XX` - opens `XX.dev`
             - `:q`
-            - `!`
 - `.sh` script to assemble and load the program into the simulator (with right settings)
 - Config file
     - The program can expose a subroutine that can be used by the users config file that can be assembled with the main program (`.sh` flag).
@@ -103,6 +101,7 @@ where:
         - `r`, `R`
         - `s`, `S`
         - `c<Y>`
+        - `o`,`O`
     - `<number><command>`
     - Visual mode
 - Unlimited rows

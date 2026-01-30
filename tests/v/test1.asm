@@ -1,24 +1,32 @@
-. tests c_i
+. tests c_i, c_a, c_I and c_A
+. inject text in first 3 lines
+.   - c_i -> u should be able to write infront of last character in 3rd line
+.   - c_a -> it should go to 2nd line where u are able to write to the right of where u started the insert loop
+.   - c_I -> it should go to 1st line where u are able to write infront of everything
+.   - c_A -> u should be able to write at the end in 1st line
 test1       START 0
-            EXTREF c_i
-            EXTREF ioinit,cl,cr,cu,cd,crsrnl,rch,pch,map_ch
-            EXTREF sinit,spush,spop,sp
+            EXTREF c_i,c_a,c_I,c_A,c_k
+            EXTREF ioinit
+            EXTREF sinit
 
-            +JSUB sinit . init stack
+            +JSUB sinit     . init stack
 
-            +STL @sp    . init IO
-            +JSUB spush
-            +JSUB ioinit
-            +JSUB spop
-            +LDL @sp
+            +JSUB ioinit    . init IO
 
             . tests
             . -------------------------------------
-            +STL @sp    . call c_i
-            +JSUB spush
+            . inject
             +JSUB c_i
-            +JSUB spop
-            +LDL @sp
+
+            +JSUB c_i
+
+            +JSUB c_k
+            +JSUB c_a
+
+            +JSUB c_k
+            +JSUB c_I
+
+            +JSUB c_A
 
 halt        J halt
             . -------------------------------------
