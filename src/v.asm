@@ -499,6 +499,8 @@ insert          +STL @sp
                 +JSUB spush
                 +STA @sp        . store old A
                 +JSUB spush
+                +STX @sp
+                +JSUB spush
 
                 +LDA wnull      . reset input
                 +STCH @input
@@ -526,9 +528,41 @@ insert_loop     CLEAR A         . get and compare character
 insert_escape   +JSUB spop      . pop character off the stack to keep stack consistent
                 J insert_end
 
-insert_enter    +JSUB spop      . pop character off the stack to keep stack consistent
-                +JSUB crsrnl
+        . ---
+insert_enter    CLEAR X
+                +JSUB spop      . pop character off the stack to keep stack consistent
+                +JSUB shiftd    . shift lines down
+
+insert_enterlp1 +JSUB rch       . copy characters into the general register until null or EOF (EOR)
+                +COMP wnull
+                JEQ insert_enterpre
+
+                STCH r_general, X
+                TIX #0
+                LDA #0          . and delete character
+                +JSUB pch
+
+                +JSUB cr
+                COMP #0
+                JEQ insert_enterpre
+                J insert_enterlp1
+
+insert_enterpre LDA #0          . mark EOS (end of string) in general register
+                STCH r_general, X
+                CLEAR X         . reset X
+                +JSUB crsrnl    . go line down
+insert_enterlp2 CLEAR A         . copy characters from general register to this line
+                LDCH r_general, X
+                COMP #0
+                JEQ insert_enterend
+                +JSUB pch
+                +JSUB cr
+                TIX #0
+                J insert_enterlp2
+
+insert_enterend +JSUB cfirst    . go to first character
                 J insert_reset
+        . ---
 
 insert_back     +JSUB spop      . pop character off the stack to keep stack consistent
                 +JSUB shiftl
@@ -556,6 +590,8 @@ insert_end      CLEAR A         . if cursor at null character => move left
 insert_end_mv   +JSUB cl
 
 insert_end_stack    +JSUB spop
+                    +LDX @sp
+                    +JSUB spop
                     +LDA @sp
                     +JSUB spop
                     +LDL @sp
@@ -565,6 +601,7 @@ insert_end_stack    +JSUB spop
 . Registers
 . =======================================================
 r_manip   RESB 300  . manipulation register (y, d, p)
+r_general RESB 300  . general register
 . =======================================================
 . -------------------------------------------------------
 
