@@ -2,7 +2,7 @@
 v       START 0
         EXTDEF c_i,c_a,c_o,c_I,c_A,c_h,c_l,c_k,c_j,c_g,c_G,c_w,c_b,c_0,c_dlr,c_y,c_d,c_p
         EXTREF cl,cr,cu,cd,crsrnl,ctop,cbtm,cfirst,clast,cprev,rch,pch,map_ch,map_ln,input,shiftr,shiftl,shiftd
-        EXTREF chnull,chesc,chent,chcrsr,chspac,chback,wnull,wesc,went,wcrsr,wspace,wback
+        EXTREF chnull,chesc,chent,chcrsr,chspac,chback,chshft,wnull,wesc,went,wcrsr,wspace,wback,wshift
         EXTREF spush,spop,sp
 
 . V interface
@@ -523,6 +523,9 @@ insert_loop     CLEAR A         . get and compare character
                 +COMP wback
                 JEQ insert_back
 
+                +COMP wshift
+                JEQ insert_shift
+
                 J insert_main
 
 insert_escape   +JSUB spop      . pop character off the stack to keep stack consistent
@@ -567,6 +570,9 @@ insert_enterend +JSUB cfirst    . go to first character
 insert_back     +JSUB spop      . pop character off the stack to keep stack consistent
                 +JSUB shiftl
                 +JSUB cl
+                J insert_reset
+
+insert_shift    +JSUB spop      . pop character off the stack to keep stack consistent
                 J insert_reset
                 . ------------------------
 
