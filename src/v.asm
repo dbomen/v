@@ -1,7 +1,7 @@
-. import with: EXTREF c_i,c_a,c_o,c_I,c_A,c_h,c_l,c_k,c_j,c_g,c_G,c_w,c_b,c_0,c_dlr,c_y,c_d,c_p
+. import with: EXTREF c_i,c_a,c_o,c_I,c_A,c_h,c_l,c_k,c_j,c_g,c_G,c_w,c_b,c_0,c_dlr,c_y,c_d,c_p,cmd
 v       START 0
         EXTDEF vinit
-        EXTDEF c_i,c_a,c_o,c_I,c_A,c_h,c_l,c_k,c_j,c_g,c_G,c_w,c_b,c_0,c_dlr,c_y,c_d,c_p
+        EXTDEF c_i,c_a,c_o,c_I,c_A,c_h,c_l,c_k,c_j,c_g,c_G,c_w,c_b,c_0,c_dlr,c_y,c_d,c_p,cmd
         EXTREF cl,cr,cu,cd,crsrnl,ctop,cbtm,cfirst,clast,cprev,rch,pch,map_ch,map_ln,input,shiftr,shiftl,shiftd,drawnp
         EXTREF chnull,chesc,chent,chcrsr,chspac,chback,chshft,wnull,wesc,went,wcrsr,wspace,wback,wshift
         EXTREF spush,spop,sp
@@ -30,6 +30,7 @@ c_i     +STL @sp
 c_a     +STL @sp
         +JSUB spush
 
+        CLEAR A
         +JSUB rch
         +COMP wnull
         JEQ c_ains
@@ -624,6 +625,7 @@ insert_end_stack    +JSUB spop
 
 . COMMAND MODE and BOTTOM BAR
 . =======================================================
+. -------------------------------------------------------------------------------------------------
 draw_btm_bar        +STL @sp
                     +JSUB spush
                     +STA @sp
@@ -667,6 +669,134 @@ draw_btm_bar_end    +JSUB spop
                     +JSUB spop
                     +LDL @sp
                     RSUB
+. -------------------------------------------------------------------------------------------------
+
+. -------------------------------------------------------------------------------------------------
+cmd                 +STL @sp
+                    +JSUB spush
+                    +STA @sp
+                    +JSUB spush
+                    +STB @sp
+                    +JSUB spush
+                    +STT @sp
+                    +JSUB spush
+                    +STX @sp
+                    +JSUB spush
+
+                    JSUB cmd_clear_buffer
+
+                    LDA #1          . draw ':' to screen
+                    LDB #0
+                    LDT #0x3A
+                    +JSUB drawnp
+
+                    CLEAR X
+                    +LDA wnull      . reset input
+                    +STCH @input
+
+cmd_read_lp         CLEAR A         . add characters into the buffer (if ur reading this, yes u can buffer overflow this and get code execution, try it. Hint1: you are overflowing inout.asm, Hint2: note the 0x00 that get put at the end)
+                    +LDCH @input
+
+                    +COMP wnull     . if no input => try again
+                    JEQ cmd_read_lp
+                    +COMP went      . if enter => go to processing
+                    JEQ cmd_process
+                    STCH b_cmd, X   . else write to buffer
+                    RMO A, T        . and draw to screen
+                    LDA #1
+                    LDB #1
+                    ADDR X, B
+                    +JSUB drawnp
+
+                    TIX #0
+                    +LDA wnull      . reset input
+                    +STCH @input
+                    J cmd_read_lp
+
+cmd_process         LDA #0
+                    STCH b_cmd, X
+
+                    CLEAR X         . get command
+                    LDCH b_cmd, X
+                    COMP #0x57
+                    . JEQ cmd_w
+                    COMP #0x45
+                    . JEQ cmd_e
+                    COMP #0x51
+                    JEQ cmd_q
+                    J cmd_err
+
+cmd_q               JSUB cmd_clear_buffer
+                    LDA #1          . draw 'NO'
+                    LDB #0
+                    LDT #0x4E
+                    +JSUB drawnp
+                    LDA #1
+                    LDB #1
+                    LDT #0x4F
+                    +JSUB drawnp
+                    J cmd_end
+
+cmd_err             JSUB cmd_clear_buffer
+                    LDA #1          . draw 'ERR'
+                    LDB #0
+                    LDT #0x45
+                    +JSUB drawnp
+                    LDA #1
+                    LDB #1
+                    LDT #0x52
+                    +JSUB drawnp
+                    LDA #1
+                    LDB #2
+                    LDT #0x52
+                    +JSUB drawnp
+                    J cmd_end
+
+cmd_end             +JSUB spop
+                    +LDX @sp
+                    +JSUB spop
+                    +LDT @sp
+                    +JSUB spop
+                    +LDB @sp
+                    +JSUB spop
+                    +LDA @sp
+                    +JSUB spop
+                    +LDL @sp
+                    RSUB
+
+cmd_clear_buffer    +STL @sp
+                    +JSUB spush
+                    +STA @sp
+                    +JSUB spush
+                    +STT @sp
+                    +JSUB spush
+                    +STX @sp
+                    +JSUB spush
+
+                    CLEAR A
+                    CLEAR X
+cmd_clear_buffer_lp STCH b_cmd, X   . clear buffer
+                    LDA #1          . clear screen buffer
+                    RMO X, B
+                    LDT #0
+                    +JSUB drawnp
+
+                    TIX #r_size
+                    JEQ cmd_clear_bufferend
+                    J cmd_clear_buffer_lp
+
+cmd_clear_bufferend +JSUB spop
+                    +LDX @sp
+                    +JSUB spop
+                    +LDT @sp
+                    +JSUB spop
+                    +LDA @sp
+                    +JSUB spop
+                    +LDL @sp
+                    RSUB
+
+cmd_device     RESB 1
+. -------------------------------------------------------------------------------------------------
 . =======================================================
 
 vinit   +STL @sp
@@ -678,10 +808,14 @@ vinit   +STL @sp
         +LDL @sp
         RSUB
 
-. Registers
+. Registers / Buffers
 . =======================================================
-r_manip   RESB 300  . manipulation register (y, d, p)
-r_general RESB 300  . general register
+r_manip     RESB r_size . manipulation register (y, d, p)
+r_general   RESB r_size . general register
+r_size      EQU 300
+
+b_cmd       RESB b_size . command mode buffer
+b_size      EQU 300
 . =======================================================
 . -------------------------------------------------------
 
