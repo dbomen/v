@@ -49,7 +49,9 @@ c_o     +STL @sp
 
         +JSUB shiftd
         +JSUB crsrnl
-        JSUB insert . go to the insert loop
+        +LDCH chspac    . add space to first character in new line
+        +JSUB pch
+        JSUB insert     . go to the insert loop
 
         +JSUB spop
         +LDL @sp
@@ -568,6 +570,8 @@ insert_enterlp2 CLEAR A         . copy characters from general register to this 
                 J insert_enterlp2
 
 insert_enterend +JSUB cfirst    . go to first character
+                +LDCH chspac    . add space to first character in new line
+                +JSUB pch
                 J insert_reset
         . ---
 
