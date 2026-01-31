@@ -1,5 +1,6 @@
 init    START 0
         EXTREF c_i,c_a,c_o,c_I,c_A,c_h,c_l,c_k,c_j,c_g,c_G,c_w,c_b,c_0,c_dlr,c_y,c_d,c_p
+        EXTREF vinit
         EXTREF ioinit
         EXTREF mput
         EXTREF sinit
@@ -8,6 +9,7 @@ init    START 0
 . --------------------------------------------
         +JSUB sinit     . init stack
         +JSUB ioinit    . init IO
+        +JSUB vinit     . init V
 
         LDA #0x49       . init map
         +LDB #c_i

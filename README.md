@@ -44,7 +44,7 @@ where:
 ## TODO DEV NOTES
 
 ### FULL PRIO
-- Bottom bar -> shows mode + commands (bottom 2 rows are reserved for the bottom bar)
+- ~~Bottom bar -> shows mode + commands (bottom 2 rows are reserved for the bottom bar)~~
 - Commands (single-char)
     - implement with 255 array and have O(1) mapping
     - Movement

@@ -1,7 +1,8 @@
 . import with: EXTREF c_i,c_a,c_o,c_I,c_A,c_h,c_l,c_k,c_j,c_g,c_G,c_w,c_b,c_0,c_dlr,c_y,c_d,c_p
 v       START 0
+        EXTDEF vinit
         EXTDEF c_i,c_a,c_o,c_I,c_A,c_h,c_l,c_k,c_j,c_g,c_G,c_w,c_b,c_0,c_dlr,c_y,c_d,c_p
-        EXTREF cl,cr,cu,cd,crsrnl,ctop,cbtm,cfirst,clast,cprev,rch,pch,map_ch,map_ln,input,shiftr,shiftl,shiftd
+        EXTREF cl,cr,cu,cd,crsrnl,ctop,cbtm,cfirst,clast,cprev,rch,pch,map_ch,map_ln,input,shiftr,shiftl,shiftd,drawnp
         EXTREF chnull,chesc,chent,chcrsr,chspac,chback,chshft,wnull,wesc,went,wcrsr,wspace,wback,wshift
         EXTREF spush,spop,sp
 
@@ -620,6 +621,62 @@ insert_end_stack    +JSUB spop
                     +LDL @sp
                     RSUB
 . =======================================================
+
+. COMMAND MODE and BOTTOM BAR
+. =======================================================
+draw_btm_bar        +STL @sp
+                    +JSUB spush
+                    +STA @sp
+                    +JSUB spush
+                    +STB @sp
+                    +JSUB spush
+                    +STT @sp
+                    +JSUB spush
+                    +STX @sp
+                    +JSUB spush
+
+                    LDA #0
+                    LDB #0
+                    LDT #0x3D       . ='='
+                    +JSUB drawnp    . draw first '='
+
+                    LDA #0
+                    LDB #1
+                    LDT #0x4E       . =N
+                    +JSUB drawnp    . draw mode
+
+                    LDX #2
+draw_btm_bar_loop   LDA #0          . draw rest of bottom bar
+                    RMO X, B
+                    LDT #0x3D
+                    +JSUB drawnp
+                    COMP #0         . end on EOL (end of line)
+                    JEQ draw_btm_bar_end
+
+                    TIX #0
+                    J draw_btm_bar_loop
+
+draw_btm_bar_end    +JSUB spop
+                    +LDX @sp
+                    +JSUB spop
+                    +LDT @sp
+                    +JSUB spop
+                    +LDB @sp
+                    +JSUB spop
+                    +LDA @sp
+                    +JSUB spop
+                    +LDL @sp
+                    RSUB
+. =======================================================
+
+vinit   +STL @sp
+        +JSUB spush
+
+        JSUB draw_btm_bar       . TODO: add that it calls display startet text
+
+        +JSUB spop
+        +LDL @sp
+        RSUB
 
 . Registers
 . =======================================================
