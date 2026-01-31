@@ -1,10 +1,10 @@
-. import with: EXTREF ioinit,cl,cr,cu,cd,crsrnl,ctop,cbtm,cfirst,clast,cprev,rch,pch,map_ch,map_ln,input,shiftr,shiftl,shiftd
+. import with: EXTREF ioinit,cl,cr,cu,cd,crsrnl,ctop,cbtm,cfirst,clast,cprev,rch,pch,map_ch,map_ln,input,shiftr,shiftl,shiftd,drawnp
 . import ASCII ch with: EXTREF chnull,chesc,chent,chcrsr,chspac,chback,chshft,wnull,wesc,went,wcrsr,wspace,wback,wshift
 . import hidden with: EXTREF output,cursor,scrcol,scrrow
 io      START 0
         . uncomment for hidden API
         . EXTDEF output,cursor,scrcol,scrrow
-        EXTDEF ioinit,cl,cr,cu,cd,crsrnl,ctop,cbtm,cfirst,clast,cprev,rch,pch,map_ch,map_ln,input,shiftr,shiftl,shiftd
+        EXTDEF ioinit,cl,cr,cu,cd,crsrnl,ctop,cbtm,cfirst,clast,cprev,rch,pch,map_ch,map_ln,input,shiftr,shiftl,shiftd,drawnp
         EXTDEF chnull,chesc,chent,chcrsr,chspac,chback,chshft,wnull,wesc,went,wcrsr,wspace,wback,wshift
         EXTREF spush,spop,sp
 
@@ -672,6 +672,49 @@ shiftd_cb   +STL @sp
 
 shift_ch        RESB 1
 shift_og_crsr   RESW 1
+
+. draw to non operational cell
+. params:
+.   row number in A (0 == firt non operational line - would be 24th line in case of 23 operational lines, 1 == 25th line, ...)
+.   col number in B
+.   character in T
+. return #0 on error:
+.   - row out of bounds,
+.   - col out of bounds,
+. return #1 on good
+drawnp      +STL @sp
+            +JSUB spush
+
+            ADD scrrow      . get the real line number
+            COMP scrrowf    . if rows out of bounds => end
+            JGT drawnp_err
+            STA draw_np_row
+
+            RMO B, A
+            COMP scrcol     . if cols out of bounds => end
+            JEQ drawnp_err
+            JGT drawnp_err
+            STA draw_np_col
+
+            LDA draw_np_row . get the cell
+            MUL scrcol
+            ADD draw_np_col
+            ADD output
+            STA draw_np_loc
+
+            RMO T, A
+            STCH @draw_np_loc
+            LDA #1
+            J draw_npend
+
+drawnp_err  LDA #0
+draw_npend  +JSUB spop
+            +LDL @sp
+            RSUB
+
+draw_np_row RESW 1
+draw_np_col RESW 1
+draw_np_loc RESW 1
 . =======================================================
 
 
@@ -680,7 +723,8 @@ input   WORD 0xc000 . addr of keyboard
 output  WORD 0xb800 . addr of screen
 cursor  WORD 0xb800 . addr of cursor
 scrcol  WORD 80     . screen number of columns
-scrrow  WORD 25     . screen number of rows
+scrrow  WORD 23     . screen number of operational rows
+scrrowf WORD 25     . screen number of rows
 
 chprev      RESB 1      . runtime variable that holds the previous character, the cursor indicator replaced
 crsrprev    RESW 1      . runtime variable that holds the previous cursor position
