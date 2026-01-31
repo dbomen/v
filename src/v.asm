@@ -172,7 +172,12 @@ c_j     +STL @sp
         +COMP wnull
         JEQ c_jback
 
-        +JSUB cprev
+        +JSUB cprev     . else go down or if current null then go to last character in line
+        +JSUB rch
+        +COMP wnull
+        JEQ c_jnull
+        J c_jend
+c_jnull +JSUB c_dlr
         J c_jend
 
 c_jback +JSUB cprev
@@ -570,9 +575,13 @@ insert_enterlp2 CLEAR A         . copy characters from general register to this 
                 J insert_enterlp2
 
 insert_enterend +JSUB cfirst    . go to first character
-                +LDCH chspac    . add space to first character in new line
+                +JSUB rch       . if current null => add space to first character in new line
+                +COMP wnull
+                JEQ insert_enterspc
+                J insert_enternsp
+insert_enterspc +LDCH chspac
                 +JSUB pch
-                J insert_reset
+insert_enternsp J insert_reset
         . ---
 
 insert_back     +JSUB spop      . pop character off the stack to keep stack consistent
