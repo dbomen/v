@@ -29,8 +29,12 @@ c_i     +STL @sp
 c_a     +STL @sp
         +JSUB spush
 
-        +JSUB cr
-        JSUB insert . go to the insert loop
+        +JSUB rch
+        +COMP wnull
+        JEQ c_ains
+        +JSUB cr    . go right only if current character is non null
+
+c_ains  JSUB insert . go to the insert loop
 
         +JSUB spop
         +LDL @sp
