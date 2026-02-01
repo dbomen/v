@@ -2,6 +2,7 @@
 v       START 0
         EXTDEF vinit
         EXTDEF c_i,c_a,c_o,c_I,c_A,c_h,c_l,c_k,c_j,c_g,c_G,c_w,c_b,c_0,c_dlr,c_y,c_d,c_p,cmd
+        EXTREF ioinit
         EXTREF cl,cr,cu,cd,crsrnl,ctop,cbtm,cfirst,clast,cprev,rch,pch,map_ch,map_ln,input,shiftr,shiftl,shiftd,drawnp
         EXTREF chnull,chesc,chent,chcrsr,chspac,chback,chshft,wnull,wesc,went,wcrsr,wspace,wback,wshift
         EXTREF spush,spop,sp
@@ -949,7 +950,18 @@ cmd_device     RESB 1
 vinit   +STL @sp
         +JSUB spush
 
-        JSUB draw_btm_bar       . TODO: add that it calls display startet text
+        JSUB draw_btm_bar           . draw bottom bar
+
+        LDA #0xFF                   . draw starter screen
+        STCH cmd_device
+        LDA #cmd_e_cb
+        +JSUB map_ch
+
+loop    CLEAR A         . wait for character
+        +LDCH @input
+        +COMP wnull     . if nothing (null) => try again
+        JEQ loop
+        +JSUB ioinit    . else reset screen and let the flow continue
 
         +JSUB spop
         +LDL @sp
