@@ -512,8 +512,15 @@ insert          +STL @sp
                 +JSUB spush
                 +STA @sp        . store old A
                 +JSUB spush
+                +STT @sp
+                +JSUB spush
                 +STX @sp
                 +JSUB spush
+
+                LDA #0          . draw insert mode in bottom bar
+                LDB #1
+                LDT #0x49       . =I
+                +JSUB drawnp
 
                 +LDA wnull      . reset input
                 +STCH @input
@@ -614,8 +621,15 @@ insert_end      CLEAR A         . if cursor at null character => move left
                 J insert_end_stack
 insert_end_mv   +JSUB cl
 
-insert_end_stack    +JSUB spop
+insert_end_stack    LDA #0          . draw normal mode in bottom bar
+                    LDB #1
+                    LDT #0x4E       . =N
+                    +JSUB drawnp
+
+                    +JSUB spop
                     +LDX @sp
+                    +JSUB spop
+                    +LDT @sp
                     +JSUB spop
                     +LDA @sp
                     +JSUB spop
@@ -682,6 +696,11 @@ cmd                 +STL @sp
                     +JSUB spush
                     +STX @sp
                     +JSUB spush
+
+                    LDA #0          . draw command mode in bottom bar
+                    LDB #1
+                    LDT #0x43       . =C
+                    +JSUB drawnp
 
                     JSUB cmd_clear_buffer
 
@@ -752,7 +771,12 @@ cmd_err             JSUB cmd_clear_buffer
                     +JSUB drawnp
                     J cmd_end
 
-cmd_end             +JSUB spop
+cmd_end             LDA #0
+                    LDB #1
+                    LDT #0x4E       . =N
+                    +JSUB drawnp    . draw mode
+
+                    +JSUB spop
                     +LDX @sp
                     +JSUB spop
                     +LDT @sp
