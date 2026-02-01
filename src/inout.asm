@@ -24,6 +24,7 @@ ioinit      +STL @sp
 
             LDA #ioinit_cb
             JSUB map_ch
+            JSUB remv_crsr
 
             LDA output   . reset cursor
             STA cursor
@@ -436,6 +437,8 @@ map_ch      +STL @sp
 
             STA map_cb
 
+            JSUB ctop
+
             LDA #1
 map_chl1    COMP #0
             JEQ map_chend
@@ -450,7 +453,8 @@ map_chl2    COMP #0
 map_chl1end JSUB crsrnl
             J map_chl1
 
-map_chend   +JSUB spop
+map_chend   JSUB ctop
+            +JSUB spop
             +LDL @sp
             RSUB
 
@@ -484,6 +488,7 @@ map_lnend   +JSUB spop
             RSUB
 
 map_cb      RESW 1
+map_og_crsr RESW 1
 
 . shift characters right in line from cursor (including the cursor character)
 . does NOT move the cursor

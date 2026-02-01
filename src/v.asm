@@ -738,12 +738,25 @@ cmd_process         LDA #0
                     CLEAR X         . get command
                     LDCH b_cmd, X
                     COMP #0x57
-                    . JEQ cmd_w
+                    JEQ cmd_w
                     COMP #0x45
-                    . JEQ cmd_e
+                    JEQ cmd_e
                     COMP #0x51
                     JEQ cmd_q
                     J cmd_err
+
+cmd_w               JSUB cmd_process_device
+                    LDA #cmd_w_cb
+                    +JSUB map_ch
+
+                    LDA #0x03       . write ETX at the end
+                    WD cmd_device
+                    J cmd_end
+
+cmd_e               JSUB cmd_process_device
+                    LDA #cmd_e_cb
+                    +JSUB map_ch
+                    J cmd_end
 
 cmd_q               JSUB cmd_clear_buffer
                     LDA #1          . draw 'NO'
@@ -788,6 +801,54 @@ cmd_end             LDA #0
                     +LDL @sp
                     RSUB
 
+. write callback for map_ch. Copy all operational cells into the file (including 0x00).
+cmd_w_cb    +STL @sp
+            +JSUB spush
+            +STA @sp
+            +JSUB spush
+
+            CLEAR A
+            +JSUB rch           . read the character
+            WD cmd_device       . write character
+
+            +JSUB spop
+            +LDA @sp
+            +JSUB spop
+            +LDL @sp
+            RSUB
+
+. open callback for map_ch. Copy all characters from device onto cells, until ETX (0x03).
+cmd_e_cb    +STL @sp
+            +JSUB spush
+            +STA @sp
+            +JSUB spush
+
+            LDA #1              . if already ended => skip
+            COMP cmd_e_cb_bl
+            JEQ cmd_e_cbend
+
+            CLEAR A
+            RD cmd_device       . read the character from device
+            COMP #0x03
+            JEQ cmd_e_cbskp     . if just ended => var = true & skip
+            J cmd_e_cont
+
+cmd_e_cbskp LDA #1
+            STA cmd_e_cb_bl
+            J cmd_e_cbend
+
+cmd_e_cont  +JSUB pch
+
+cmd_e_cbend +JSUB spop
+            +LDA @sp
+            +JSUB spop
+            +LDL @sp
+            RSUB
+
+cmd_e_cb_bl RESW 1              . end indicator boolean var
+. -------------------------------------------------------------------------------------------------
+
+. -------------------------------------------------------------------------------------------------
 cmd_clear_buffer    +STL @sp
                     +JSUB spush
                     +STA @sp
@@ -818,9 +879,50 @@ cmd_clear_bufferend +JSUB spop
                     +JSUB spop
                     +LDL @sp
                     RSUB
+. -------------------------------------------------------------------------------------------------
+
+. -------------------------------------------------------------------------------------------------
+. allowed devices <0-9><0-9>
+. device = de_ascii(first) * 16 + de_ascii(second)
+. result in cmd_device
+cmd_process_device  +STL @sp
+                    +JSUB spush
+                    +STA @sp
+                    +JSUB spush
+                    +STB @sp
+                    +JSUB spush
+                    +STX @sp
+                    +JSUB spush
+
+                    TIX #0          . get first nible
+                    TIX #0
+                    LDCH b_cmd, X   . get first ascii nible
+                    SUB #0x30       . de_ascii == first - '0'
+                    MUL #16
+                    STCH cmd_device
+
+                    TIX #0
+                    LDCH b_cmd, X   . get second nible
+                    SUB #0x30       . de_ascii
+                    RMO A, B
+
+                    LDCH cmd_device
+                    ADDR B, A
+                    STCH cmd_device
+
+cmd_process_devicee +JSUB spop
+                    +LDX @sp
+                    +JSUB spop
+                    +LDB @sp
+                    +JSUB spop
+                    +LDA @sp
+                    +JSUB spop
+                    +LDL @sp
+                    RSUB
 
 cmd_device     RESB 1
 . -------------------------------------------------------------------------------------------------
+
 . =======================================================
 
 vinit   +STL @sp
