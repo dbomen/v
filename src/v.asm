@@ -720,6 +720,8 @@ cmd_read_lp         CLEAR A         . add characters into the buffer (if ur read
                     JEQ cmd_read_lp
                     +COMP went      . if enter => go to processing
                     JEQ cmd_process
+                    +COMP wback     . if back => delete char and go back
+                    JEQ cmd_back
                     STCH b_cmd, X   . else write to buffer
                     RMO A, T        . and draw to screen
                     LDA #1
@@ -731,6 +733,25 @@ cmd_read_lp         CLEAR A         . add characters into the buffer (if ur read
                     +LDA wnull      . reset input
                     +STCH @input
                     J cmd_read_lp
+
+cmd_back            LDA #0
+                    COMPR X, A      . if X <= 0 then dont do anything
+                    JEQ cmd_back_end
+                    JLT cmd_back_end
+
+                    LDA #1
+                    SUBR A, X       . X--
+                    LDA #0x00
+                    STCH b_cmd, X   . delete character
+                    LDA #1          . delete character on screen
+                    LDB #1
+                    ADDR X, B
+                    LDT #0
+                    +JSUB drawnp
+
+cmd_back_end        +LDA wnull      . reset input
+                    +STCH @input
+                    J cmd_read_lp   . read again
 
 cmd_process         LDA #0
                     STCH b_cmd, X
