@@ -957,15 +957,15 @@ vinit   +STL @sp
         LDA #cmd_e_cb
         +JSUB map_ch
 
-loop    CLEAR A         . wait for character
-        +LDCH @input
-        +COMP wnull     . if nothing (null) => try again
-        JEQ loop
-        +JSUB ioinit    . else reset screen and let the flow continue
+vinit_loop  CLEAR A         . wait for character
+            +LDCH @input
+            +COMP wnull     . if nothing (null) => try again
+            JEQ vinit_loop
+            +JSUB ioinit    . else reset screen and let the flow continue
 
-        +JSUB spop
-        +LDL @sp
-        RSUB
+            +JSUB spop
+            +LDL @sp
+            RSUB
 
 . Registers / Buffers
 . =======================================================

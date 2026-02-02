@@ -2,6 +2,7 @@ loop    START 0
         EXTREF mget,mfun
         EXTREF input
         EXTREF wnull
+        EXTDEF main
 
 . main loop
 . --------------------------------------------

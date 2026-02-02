@@ -62,7 +62,7 @@ elif [[ "$1" == "project" ]]; then
 
     asm_files=()
     asm_files+=( "../src/init.asm" )
-    [[ -f ../src/vconf.asm ]] && asm_files+=( "../src/vconf.asm" )
+    [[ -f ../vconf.asm ]] && asm_files+=( "../vconf.asm" )
     asm_files+=( "../src/loop.asm" )
     asm_files+=( "../src/v.asm" )
     asm_files+=( "../src/inout.asm" )
