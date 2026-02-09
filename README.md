@@ -1,5 +1,8 @@
 # v
 
+> [!IMPORTANT]
+> archived and not in active development.
+
 We had ```vi```, then ```vim``` and now ```nvim```. But we are taking a step back and introducing **```v```**, a much worse ```vi```.
 
 Text editor built in SIC/XE assembly that runs in the simulator https://github.com/jurem/SicTools.
